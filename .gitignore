@@ -1,0 +1,87 @@
+# Compiled class files
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# Maven
+.mvn/
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle
+build/
+
+# Eclipse
+.metadata/
+*.classpath
+*.project
+*.settings/
+
+# Intellij IDEA
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Generated API documentation
+docs/api/
+
+
+# Spring Boot
+# Ignore application properties that might include sensitive information
+application*.yml
+application*.yaml
+application*.properties
+spring-boot-configuration-metadata.json
+
+# REST Docs
+target/generated-snippets/
+
+# Other
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+lerna-debug.log
