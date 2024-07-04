@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @RestController
+
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -53,9 +54,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody User user) {
-        if (user == null || Objects.isNull(user.getUsername()) || Objects.isNull(user.getEmail()) || Objects.isNull(user.getPassword())) {
-            throw new InvalidRequestException("User details cannot be null or incomplete");
-        }
+        validateUser(user);
         return ResponseEntity.ok(userService.createUser(user));
     }
 
@@ -64,9 +63,7 @@ public class UserController {
         if (id == null || userDetails == null) {
             throw new InvalidRequestException("User ID and details cannot be null");
         }
-        if (Objects.isNull(userDetails.getUsername()) || Objects.isNull(userDetails.getEmail()) || Objects.isNull(userDetails.getPassword())) {
-            throw new InvalidRequestException("User details cannot be null or incomplete");
-        }
+        validateUser(userDetails);
         return ResponseEntity.ok(userService.updateUser(id, userDetails));
     }
 
@@ -81,7 +78,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LocalLoginRequestDTO data, HttpServletResponse response) {
-        if (data == null || Objects.isNull(data.getUsername()) || Objects.isNull(data.getPassword())) {
+        if (data == null || Objects.isNull(data.getUsername()) || Objects.isNull(data.getPassword()) || data.getUsername().isEmpty() || data.getPassword().isEmpty()) {
             throw new InvalidRequestException("Username and password cannot be null");
         }
         try {
@@ -91,14 +88,6 @@ public class UserController {
         } catch (Exception e) {
             throw new AuthenticationException("Invalid username or password");
         }
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> register(@RequestBody User user) {
-        if (user == null || Objects.isNull(user.getUsername()) || Objects.isNull(user.getEmail()) || Objects.isNull(user.getPassword())) {
-            throw new InvalidRequestException("User details cannot be null or incomplete");
-        }
-        return ResponseEntity.ok(userService.createUser(user));
     }
 
     @PostMapping("/logout")
@@ -113,4 +102,14 @@ public class UserController {
             throw new InvalidRequestException("Failed to logout");
         }
     }
+
+    private void validateUser(User user) {
+        if (user == null || Objects.isNull(user.getUsername()) || user.getUsername().isBlank() ||
+            Objects.isNull(user.getEmail()) || user.getEmail().isBlank() ||
+            Objects.isNull(user.getPassword()) || user.getPassword().isBlank()) {
+            throw new InvalidRequestException("User details cannot be null or incomplete");
+        }
+    }
 }
+
+
