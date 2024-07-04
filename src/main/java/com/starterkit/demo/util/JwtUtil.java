@@ -39,12 +39,11 @@ public class JwtUtil {
     public Claims getClaimsFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
-                .setAllowedClockSkewSeconds(clockSkew / 1000) // converting milliseconds to seconds
+                .clockSkewSeconds(clockSkew / 1000) // converting milliseconds to seconds
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
     public boolean isTokenExpired(String token) {
         final Date tokenExpiration = getClaimsFromToken(token).getExpiration();
         return tokenExpiration.before(new Date());
@@ -54,7 +53,6 @@ public class JwtUtil {
         final String usernameFromToken = getClaimsFromToken(token).getSubject();
         return (usernameFromToken.equals(username) && !isTokenExpired(token));
     }
-
     public Long getExpiration() {
         return expiration;
     }

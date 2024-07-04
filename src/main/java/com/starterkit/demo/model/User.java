@@ -2,6 +2,7 @@ package com.starterkit.demo.model;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+import lombok.Builder.Default;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -70,5 +71,6 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider")
+    // @Default(value = AuthProvider.LOCAL)
     private AuthProvider authProvider;
 }

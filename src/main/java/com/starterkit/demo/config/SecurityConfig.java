@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -46,6 +48,11 @@ public class SecurityConfig {
     private JwtUtil jwtUtil;
 
     private final FeatureManager featureManager;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     public SecurityConfig(FeatureManager featureManager) {
         this.featureManager = featureManager;
@@ -90,10 +97,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-     @Bean
+    @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
         return (request, response, authentication) -> {
-            String token = jwtUtil.generateToken(Map.of("role", authentication.getAuthorities()), authentication.getName());
+            String token = jwtUtil.generateToken(Map.of("role", authentication.getAuthorities()),
+                    authentication.getName());
             Cookie cookie = new Cookie("JWT_TOKEN", token);
             cookie.setHttpOnly(true);
             cookie.setSecure(true); // Ensure it's only sent over HTTPS
@@ -116,12 +124,12 @@ public class SecurityConfig {
             response.sendRedirect("/login?logout");
         };
     }
+
     @Bean
     public ClientRegistrationRepository clientRegistrationRepository() {
         List<ClientRegistration> registrations = new ArrayList<>();
 
-            registrations.add(this.googleClientRegistration());
-        
+        registrations.add(this.googleClientRegistration());
 
         if (featureManager.isActive(FeatureToggle.FACEBOOK_OAUTH2)) {
             registrations.add(this.facebookClientRegistration());
