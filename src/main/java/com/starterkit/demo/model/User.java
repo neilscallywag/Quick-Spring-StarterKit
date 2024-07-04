@@ -2,7 +2,6 @@ package com.starterkit.demo.model;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
-import lombok.Builder.Default;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

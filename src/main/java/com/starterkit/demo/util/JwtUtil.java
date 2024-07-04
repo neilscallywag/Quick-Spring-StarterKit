@@ -56,4 +56,17 @@ public class JwtUtil {
     public Long getExpiration() {
         return expiration;
     }
+
+        // Setters for testing purposes
+        public void setSecret(String secret) {
+            this.secret = secret;
+        }
+    
+        public void setExpiration(Long expiration) {
+            this.expiration = expiration;
+        }
+    
+        public void setClockSkew(Long clockSkew) {
+            this.clockSkew = clockSkew;
+        }
 }

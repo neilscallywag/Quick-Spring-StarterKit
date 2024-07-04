@@ -1,8 +1,5 @@
 package com.starterkit.demo.dto;
 
-import java.security.AuthProvider;
-import java.util.UUID;
-
 import com.starterkit.demo.model.EnumRole;
 
 import lombok.Data;

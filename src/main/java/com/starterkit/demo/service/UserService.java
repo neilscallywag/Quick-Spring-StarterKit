@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +21,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.management.RuntimeErrorException;
 
 @Service
 @Transactional
@@ -123,6 +121,7 @@ public class UserService {
         response.addCookie(cookie);
 
         // Optionally blacklist the token
+        System.out.println(token);
         }
         catch(Exception e) {
             throw new RuntimeException("Failed to Logout");
