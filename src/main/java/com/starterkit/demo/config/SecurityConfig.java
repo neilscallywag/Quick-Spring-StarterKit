@@ -1,6 +1,6 @@
 package com.starterkit.demo.config;
 
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,65 +10,179 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import jakarta.servlet.http.HttpServletResponse;
+import com.starterkit.demo.features.FeatureToggle;
+import com.starterkit.demo.util.JwtUtil;
 
-// Indicates that this class contains one or more @Bean methods and may be processed by the Spring container to generate bean definitions and service requests at runtime
+import org.togglz.core.manager.FeatureManager;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 @Configuration
-// Enables Spring Security’s web security support and provides the Spring MVC integration
 @EnableWebSecurity
 public class SecurityConfig {
     @Value("${spring.profiles.active:}")
     private String activeProfile;
 
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    // Defines a bean for AuthenticationManager to handle authentication, which is needed by Spring Security
+    private final FeatureManager featureManager;
+
+    public SecurityConfig(FeatureManager featureManager) {
+        this.featureManager = featureManager;
+    }
+
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    // Configures the security filter chain
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults()) // Enables Cross-Origin Resource Sharing (CORS) with default configuration
-            .csrf(csrf -> csrf.disable()) // Disables Cross-Site Request Forgery (CSRF) protection
-            .sessionManagement(sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Configures session management to be stateless
-            .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(
-                (request, response, exception) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, exception.getMessage()) // Sets the response status to 401 Unauthorized if authentication fails
-            ))
-            .authorizeHttpRequests(authorizeHttpRequest -> {
-                authorizeHttpRequest
-                .requestMatchers("/public/**").permitAll();
+        http.cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(
+                        sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(
+                        (request, response, exception) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                                exception.getMessage())))
+                .authorizeHttpRequests(authorizeHttpRequest -> {
+                    authorizeHttpRequest
+                            .requestMatchers("/oauth2/**").permitAll()
+                            .requestMatchers("/login/**").permitAll()
+                            .requestMatchers("/logout").permitAll()
+                            .requestMatchers("/public/**").permitAll();
 
-                // if dev env or staging allow actuator and openapi endpoints
-                if ("dev".equals(activeProfile) || "staging".equals(activeProfile)) {
-                    authorizeHttpRequest.requestMatchers("/actuator/**").permitAll()
-                    .requestMatchers("/v3/api-docs/**").permitAll()
-                    .requestMatchers("/swagger-ui.html").permitAll()
-                    .requestMatchers("/swagger-ui/**").permitAll();
-                }
-                
-                // everything else 401 if not authn
-                authorizeHttpRequest.anyRequest().authenticated();
-            });
-        return http.build(); 
+                    if ("dev".equals(activeProfile) || "staging".equals(activeProfile)) {
+                        authorizeHttpRequest.requestMatchers("/actuator/**").permitAll()
+                                .requestMatchers("/api/users/**").permitAll()
+                                .requestMatchers("/v3/api-docs/**").permitAll()
+                                .requestMatchers("/swagger-ui.html").permitAll()
+                                .requestMatchers("/swagger-ui/**").permitAll();
+                    }
+
+                    authorizeHttpRequest.anyRequest().authenticated();
+                })
+                .oauth2Login(oauth2 -> oauth2.successHandler(authenticationSuccessHandler()))
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessHandler(new CustomLogoutSuccessHandler()));
+        return http.build();
     }
 
-    // Configures a CORS filter to handle CORS preflight requests and allow cross-origin requests
+     @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+        return (request, response, authentication) -> {
+            String token = jwtUtil.generateToken(Map.of("role", authentication.getAuthorities()), authentication.getName());
+            Cookie cookie = new Cookie("JWT_TOKEN", token);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true); // Ensure it's only sent over HTTPS
+            cookie.setPath("/");
+            cookie.setMaxAge(jwtUtil.getExpiration().intValue());
+            response.addCookie(cookie);
+            response.sendRedirect("/home");
+        };
+    }
+
+    @Bean
+    public LogoutSuccessHandler customLogoutSuccessHandler() {
+        return (request, response, authentication) -> {
+            Cookie cookie = new Cookie("JWT_TOKEN", null);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
+            cookie.setPath("/");
+            cookie.setMaxAge(0); // Set max age to 0 to delete the cookie
+            response.addCookie(cookie);
+            response.sendRedirect("/login?logout");
+        };
+    }
+    @Bean
+    public ClientRegistrationRepository clientRegistrationRepository() {
+        List<ClientRegistration> registrations = new ArrayList<>();
+
+            registrations.add(this.googleClientRegistration());
+        
+
+        if (featureManager.isActive(FeatureToggle.FACEBOOK_OAUTH2)) {
+            registrations.add(this.facebookClientRegistration());
+        }
+
+        return new InMemoryClientRegistrationRepository(registrations);
+    }
+
+    private ClientRegistration googleClientRegistration() {
+        return ClientRegistration.withRegistrationId("google")
+                .clientId("google-client-id")
+                .clientSecret("google-client-secret")
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .scope("openid", "profile", "email", "address", "phone")
+                .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
+                .tokenUri("https://www.googleapis.com/oauth2/v4/token")
+                .userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
+                .userNameAttributeName(IdTokenClaimNames.SUB)
+                .jwkSetUri("https://www.googleapis.com/oauth2/v3/certs")
+                .clientName("Google")
+                .build();
+    }
+
+    private ClientRegistration facebookClientRegistration() {
+        return ClientRegistration.withRegistrationId("facebook")
+                .clientId("facebook-client-id")
+                .clientSecret("facebook-client-secret")
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .scope("public_profile", "email")
+                .authorizationUri("https://www.facebook.com/v8.0/dialog/oauth")
+                .tokenUri("https://graph.facebook.com/v8.0/oauth/access_token")
+                .userInfoUri("https://graph.facebook.com/me?fields=id,name,email,picture{url}")
+                .userNameAttributeName(IdTokenClaimNames.SUB)
+                .jwkSetUri("https://www.facebook.com/.well-known/openid-configuration")
+                .clientName("Facebook")
+                .build();
+    }
+
     @Bean
     public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource(); // Creates a new source for URL-based CORS configuration
-        CorsConfiguration config = new CorsConfiguration(); // Creates a new CORS configuration object
-        config.setAllowCredentials(true); // Allows credentials (cookies, authorization headers, or TLS client certificates) to be included in requests
-        config.addAllowedOriginPattern("*"); // Allows all origins to access the resources
-        config.addAllowedHeader("*"); // Allows all headers to be included in requests
-        config.addAllowedMethod("*"); // Allows all HTTP methods (GET, POST, etc.) to be used in requests
-        source.registerCorsConfiguration("/**", config); // Registers the CORS configuration for all URL patterns
-        return new CorsFilter(source); // Returns a new CorsFilter with the configured source
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOriginPattern("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+
+    @Bean
+    public OidcUserService oidcUserService() {
+        return new OidcUserService();
+    }
+
+    @Bean
+    public DefaultOAuth2UserService oauth2UserService() {
+        return new CustomOAuth2UserService();
     }
 }
