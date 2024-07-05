@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: ./backend/monolith-proxy/
     ports:
       - "8080:8080"
     depends_on:

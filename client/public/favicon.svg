@@ -1,0 +1,25 @@
+<svg 
+  id="Layer_1" 
+  data-name="Layer 1"
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 32 32"
+>
+  <defs>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        .cls-1{
+          fill:#ffffff;
+          fill-rule:evenodd;
+        }
+      }
+
+      @media (prefers-color-scheme: light) {
+          .cls-1{
+            fill:#1e255c;
+            fill-rule:evenodd;
+          }
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M13.68.56h4.78L31.83,31.44H25.52L22.58,24.3q-5.76,7.14-16.7,7.14H.17L13.68.56Zm6.81,18.58L15.92,7.08,7.36,26.6a14.78,14.78,0,0,0,7.56-1.86,14.69,14.69,0,0,0,5.57-5.6Z"/>
+</svg>
