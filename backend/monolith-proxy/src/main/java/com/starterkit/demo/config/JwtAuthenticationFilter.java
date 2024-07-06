@@ -21,7 +21,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Optional;
 
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -57,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             handleAuthenticationException(response, ex);
             return;
         } catch (Exception ex) {
-            log.error("Could not set user authentication in security context", ex);
+            log.warn("Could not set user authentication in security context", ex);
             return;
         }
 
@@ -65,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean shouldSkipFilter(String path) {
-        return path.startsWith("/actuator/health") || path.startsWith("/api/users/login") || path.startsWith("/api/users/logout" ) || path.startsWith("/api/users/register");
+        return path.startsWith("/actuator/health") || path.startsWith("/api/users/login") || path.startsWith("/api/users/logout") || path.startsWith("/api/users/register");
     }
 
     private void setAuthenticationContext(String jwt, HttpServletRequest request) {

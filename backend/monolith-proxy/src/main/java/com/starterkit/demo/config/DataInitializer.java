@@ -5,22 +5,23 @@ import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.repository.RoleRepository;
 import com.starterkit.demo.repository.UserRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 @Component
+@Slf4j
 public class DataInitializer implements CommandLineRunner {
 
-    private static final Logger logger = Logger.getLogger(DataInitializer.class.getName());
 
     @Autowired
     private RoleRepository roleRepository;
@@ -49,7 +50,7 @@ public class DataInitializer implements CommandLineRunner {
                 roleRepository.save(new Role(EnumRole.ROLE_MANAGER));
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error creating roles", e);
+            log.error("Error creating roles", e);
         }
     }
 
@@ -62,14 +63,13 @@ public class DataInitializer implements CommandLineRunner {
             rolesOfficer.add(roleRepository.findByName(EnumRole.ROLE_OFFICER).orElseThrow());
             rolesManager.add(roleRepository.findByName(EnumRole.ROLE_MANAGER).orElseThrow());
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error fetching roles", e);
+            log.error("Error fetching roles", e);
             return;
         }
 
         String password = passwordEncoder.encode("password");
-        Random random = new Random();
-        
-        for (int i = 0; i < 10000000; i++) {
+
+        IntStream.range(0, 10000000).forEach(i -> {
             try {
                 User user = new User();
                 String uniqueID = UUID.randomUUID().toString();
@@ -79,13 +79,13 @@ public class DataInitializer implements CommandLineRunner {
                 user.setName("User " + i);
                 user.setRoles((i % 3 == 0) ? rolesManager : (i % 3 == 1) ? rolesOfficer : rolesUser);
                 userRepository.save(user);
-                
+
                 if (i % 1000 == 0) {
-                    logger.info("Created " + i + " users");
+                    log.info("Created " + i + " users");
                 }
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Error creating user at index " + i, e);
+                log.error("Error creating user at index " + i, e);
             }
-        }
+        });
     }
 }
