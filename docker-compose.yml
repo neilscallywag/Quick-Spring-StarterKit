@@ -3,6 +3,7 @@ services:
     build: ./backend/monolith-proxy/
     ports:
       - "8080:8080"
+      - "9010:9010" 
     depends_on:
       - db
     environment:

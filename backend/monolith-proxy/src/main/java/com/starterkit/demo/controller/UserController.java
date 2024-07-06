@@ -7,7 +7,6 @@ import com.starterkit.demo.dto.UserResponseDTO;
 import com.starterkit.demo.exception.InvalidRequestException;
 import com.starterkit.demo.exception.ResourceNotFoundException;
 import com.starterkit.demo.exception.AuthenticationException;
-import com.starterkit.demo.features.FeatureToggle;
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.service.UserService;
 import com.starterkit.demo.util.JwtUtil;
@@ -19,7 +18,6 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
