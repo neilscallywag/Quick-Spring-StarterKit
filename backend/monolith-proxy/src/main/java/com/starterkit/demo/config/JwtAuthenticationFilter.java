@@ -51,7 +51,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwt != null && jwtUtil.validateToken(jwt)) {
                 setAuthenticationContext(jwt, request);
             } else {
-                log.info("Invalid JWT token.");
                 throw new AuthenticationException("Invalid Token");
             }
         } catch (AuthenticationException ex) {
@@ -66,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean shouldSkipFilter(String path) {
-        return path.startsWith("/actuator/health") || path.startsWith("/api/users/login") || path.startsWith("/api/users/logout");
+        return path.startsWith("/actuator/health") || path.startsWith("/api/users/login") || path.startsWith("/api/users/logout" ) || path.startsWith("/api/users/register");
     }
 
     private void setAuthenticationContext(String jwt, HttpServletRequest request) {

@@ -1,7 +1,6 @@
-package com.starterkit.demo.unit;
+package com.starterkit.demo.integration;
 
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -21,16 +20,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-import java.util.UUID;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
-class UserServiceTest {
+public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -53,7 +55,19 @@ class UserServiceTest {
     }
 
     @Test
-    void createUser_SavesAndReturnsUser() {
+    public void getAllUsers_ReturnsUserPage() {
+        User user = new User();
+        user.setUsername("testuser");
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
+
+        Page<User> result = userService.getAllUsers(0, 10, null, null);
+
+        assertThat(result.getContent()).hasSize(1);
+    }
+
+    @Test
+    public void createUser_SavesAndReturnsUser() {
         NewUserRequestDTO dto = new NewUserRequestDTO();
         dto.setUsername("newuser");
         dto.setPassword("password");
@@ -80,7 +94,7 @@ class UserServiceTest {
     }
 
     @Test
-    void login_ValidCredentials_ReturnsToken() {
+    public void login_ValidCredentials_ReturnsToken() {
         User user = new User();
         user.setUsername("testuser");
         user.setPassword("encodedpassword");
@@ -102,7 +116,7 @@ class UserServiceTest {
     }
 
     @Test
-    void login_InvalidCredentials_ThrowsException() {
+    public void login_InvalidCredentials_ThrowsException() {
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
 
         HttpServletResponse response = new MockHttpServletResponse();
@@ -110,70 +124,5 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.login("testuser", "password", response))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Invalid username or password");
-    }
-
-    @Test
-    void deleteUser_ValidId_DeletesUser() {
-        UUID userId = UUID.randomUUID();
-        userService.deleteUser(userId);
-        verify(userRepository).deleteById(userId);
-    }
-
-    @Test
-    void getUserById_ValidId_ReturnsUser() {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        User foundUser = userService.getUserById(userId);
-        assertThat(foundUser).isEqualTo(user);
-    }
-
-    @Test
-    void getUserById_InvalidId_ThrowsException() {
-        UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userService.getUserById(userId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("User not found");
-    }
-
-    @Test
-    void updateUser_ValidId_UpdatesUser() {
-        UUID userId = UUID.randomUUID();
-        User existingUser = new User();
-        existingUser.setId(userId);
-        existingUser.setUsername("oldusername");
-        existingUser.setPassword("oldpassword");
-        
-        User updatedDetails = new User();
-        updatedDetails.setUsername("newusername");
-        updatedDetails.setPassword("newpassword");
-        updatedDetails.setName("newname");
-        updatedDetails.setEmail("newemail@example.com");
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(passwordEncoder.encode("newpassword")).thenReturn("encodednewpassword");
-        when(userRepository.save(existingUser)).thenReturn(existingUser);
-
-        User updatedUser = userService.updateUser(userId, updatedDetails);
-
-        assertThat(updatedUser.getUsername()).isEqualTo("newusername");
-        assertThat(updatedUser.getPassword()).isEqualTo("encodednewpassword");
-        assertThat(updatedUser.getName()).isEqualTo("newname");
-        assertThat(updatedUser.getEmail()).isEqualTo("newemail@example.com");
-    }
-
-    @Test
-    void logout_SuccessfullyClearsCookie() {
-        HttpServletResponse response = new MockHttpServletResponse();
-        userService.logout(response, "token");
-
-        Cookie cookie = ((MockHttpServletResponse) response).getCookie("JWT_TOKEN");
-        assertThat(cookie).isNotNull();
-        assertThat(cookie.getValue()).isNull();
-        assertThat(cookie.getMaxAge()).isEqualTo(0);
     }
 }

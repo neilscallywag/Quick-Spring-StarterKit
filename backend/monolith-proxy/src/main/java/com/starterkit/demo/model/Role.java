@@ -1,9 +1,9 @@
 package com.starterkit.demo.model;
 
 import jakarta.persistence.*;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
@@ -19,4 +19,8 @@ public class Role {
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private EnumRole name;
+
+    public Role(EnumRole name) {
+        this.name = name;
+    }
 }

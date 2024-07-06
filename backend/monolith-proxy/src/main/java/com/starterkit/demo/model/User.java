@@ -1,15 +1,14 @@
 package com.starterkit.demo.model;
 
 import jakarta.persistence.*;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
-import java.util.HashSet;
 
 @Entity
 @Data
@@ -70,6 +69,5 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider")
-    // @Default(value = AuthProvider.LOCAL)
     private AuthProvider authProvider;
 }

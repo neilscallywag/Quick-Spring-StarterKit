@@ -2,6 +2,10 @@ package com.starterkit.demo.service;
 
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.repository.UserRepository;
+
+import java.util.stream.Collectors;
+
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,8 +28,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
                 .password(user.getPassword())
                 .authorities(user.getRoles().stream()
-                        .map(role -> role.getName().name())
-                        .toArray(String[]::new))
+                        .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                        .collect(Collectors.toList()))
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)

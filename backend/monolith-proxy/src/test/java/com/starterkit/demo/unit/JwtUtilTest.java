@@ -4,6 +4,8 @@ import com.starterkit.demo.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 @TestPropertySource(properties = {
         "jwt.secret=jwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrect",
         "jwt.expiration=50000",
@@ -18,14 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
 })
 class JwtUtilTest {
 
+    @Autowired
     private JwtUtil jwtUtil;
 
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil();
-        jwtUtil.setSecret("jwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrectjwtsecrect");
-        jwtUtil.setExpiration(50000L);
-        jwtUtil.setClockSkew(5000L);
+        // NIL
     }
 
     @Test

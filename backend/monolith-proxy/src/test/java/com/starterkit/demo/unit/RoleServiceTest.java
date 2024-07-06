@@ -1,0 +1,53 @@
+package com.starterkit.demo.unit;
+
+import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.starterkit.demo.model.EnumRole;
+import com.starterkit.demo.model.Role;
+import com.starterkit.demo.repository.RoleRepository;
+import com.starterkit.demo.service.RoleService;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.Optional;
+
+public class RoleServiceTest {
+
+    @Mock
+    private RoleRepository roleRepository;
+
+    @InjectMocks
+    private RoleService roleService;
+
+    @BeforeEach
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    public void findRoleByName_RoleExists_ReturnsRole() {
+        Role role = new Role();
+        role.setName(EnumRole.ROLE_USER);
+
+        when(roleRepository.findByName(EnumRole.ROLE_USER)).thenReturn(Optional.of(role));
+
+        Role foundRole = roleService.findRoleByName(EnumRole.ROLE_USER);
+
+        assertThat(foundRole.getName()).isEqualTo(EnumRole.ROLE_USER);
+    }
+
+    @Test
+    public void findRoleByName_RoleDoesNotExist_ThrowsException() {
+        when(roleRepository.findByName(EnumRole.ROLE_USER)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> roleService.findRoleByName(EnumRole.ROLE_USER))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Role not found");
+    }
+}

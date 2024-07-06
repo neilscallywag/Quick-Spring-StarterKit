@@ -1,8 +1,10 @@
 package com.starterkit.demo.service;
 
+import com.starterkit.demo.dto.NewUserRequestDTO;
 import com.starterkit.demo.dto.RoleDTO;
 import com.starterkit.demo.dto.UserResponseDTO;
 import com.starterkit.demo.model.EnumRole;
+import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.repository.UserRepository;
 import com.starterkit.demo.util.JwtUtil;
@@ -30,12 +32,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RoleService roleService;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RoleService roleService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.roleService = roleService;
     }
 
     public Page<User> getAllUsers(int page, int size, String nameFilter, String emailFilter) {
@@ -55,30 +59,40 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    public UserResponseDTO createUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User generatedUser = userRepository.save(user);
+    public UserResponseDTO createUser(NewUserRequestDTO userRequestDTO) {
+        userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+        User user = NewUserRequestDTO.toUser(userRequestDTO);
+        
+        Role defaultRole = roleService.findRoleByName(EnumRole.ROLE_USER);
 
+        user.getRoles().add(defaultRole);
+
+        User savedUser = userRepository.save(user);
+
+        return convertToUserResponseDTO(savedUser);
+    }
+
+    private UserResponseDTO convertToUserResponseDTO(User user) {
         UserResponseDTO response = new UserResponseDTO();
-        response.setId(generatedUser.getId());
-        response.setUsername(generatedUser.getUsername());
-        response.setName(generatedUser.getName());
-        response.setEmail(generatedUser.getEmail());
-        response.setPhoneNumber(generatedUser.getPhoneNumber());
-        response.setDateOfBirth(generatedUser.getDateOfBirth());
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setName(user.getName());
+        response.setEmail(user.getEmail());
+        response.setPhoneNumber(user.getPhoneNumber());
+        response.setDateOfBirth(user.getDateOfBirth());
 
-        Set<RoleDTO> roleDTOs = generatedUser.getRoles().stream().map(role -> {
+        Set<RoleDTO> roleDTOs = user.getRoles().stream().map(role -> {
             RoleDTO roleDTO = new RoleDTO();
             roleDTO.setId(role.getId());
-            roleDTO.setName(EnumRole.valueOf(role.getName().name()));
+            roleDTO.setName(role.getName());
             return roleDTO;
         }).collect(Collectors.toSet());
         response.setRoles(roleDTOs);
 
-        response.setProvider(generatedUser.getProvider());
-        response.setImageUrl(generatedUser.getImageUrl());
-        response.setEmailVerified(generatedUser.getEmailVerified());
-        response.setAuthProvider(generatedUser.getAuthProvider());
+        response.setProvider(user.getProvider());
+        response.setImageUrl(user.getImageUrl());
+        response.setEmailVerified(user.getEmailVerified());
+        response.setAuthProvider(user.getAuthProvider());
 
         return response;
     }
@@ -108,19 +122,24 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
         if (passwordEncoder.matches(password, user.getPassword())) {
-            String token = jwtUtil.generateToken(Map.of("role", user.getRoles()), user.getUsername());
+            Map<String, Object> claims = Map.of(
+                "roles", user.getRoles().stream()
+                    .map(role -> role.getName().name())
+                    .collect(Collectors.toList())
+            );
+            String token = jwtUtil.generateToken(claims, user.getUsername());
             Cookie cookie = new Cookie("JWT_TOKEN", token);
             cookie.setHttpOnly(true);
-            cookie.setSecure(true); 
+            cookie.setSecure(true);
             cookie.setPath("/");
             cookie.setMaxAge(jwtUtil.getExpiration().intValue());
             response.addCookie(cookie);
-            return token; 
+            return token;
         } else {
             throw new RuntimeException("Invalid username or password");
         }
     }
-
+    
     public void logout(HttpServletResponse response, String token) {
         try {
             Cookie cookie = new Cookie("JWT_TOKEN", null);
@@ -129,7 +148,6 @@ public class UserService {
             cookie.setPath("/");
             cookie.setMaxAge(0);
             response.addCookie(cookie);
-            System.out.println(token);
         } catch (Exception e) {
             throw new RuntimeException("Failed to Logout");
         }

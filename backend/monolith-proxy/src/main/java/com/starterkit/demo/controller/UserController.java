@@ -2,6 +2,7 @@ package com.starterkit.demo.controller;
 
 import com.starterkit.demo.dto.LocalLoginRequestDTO;
 import com.starterkit.demo.dto.MeResponseDTO;
+import com.starterkit.demo.dto.NewUserRequestDTO;
 import com.starterkit.demo.dto.UserResponseDTO;
 import com.starterkit.demo.exception.InvalidRequestException;
 import com.starterkit.demo.exception.ResourceNotFoundException;
@@ -70,8 +71,8 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody User user) {
+    @PostMapping("/register")
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody NewUserRequestDTO user) {
         validateUser(user);
         return ResponseEntity.ok(userService.createUser(user));
     }
@@ -123,7 +124,7 @@ public class UserController {
 
             MeResponseDTO userInfoResponse = new MeResponseDTO();
             userInfoResponse.setUsername(claims.getSubject());
-            userInfoResponse.setRoles((List<String>) claims.get("role"));
+            userInfoResponse.setRoles((List<String>) claims.get("roles"));
             userInfoResponse.setIssuedAt(claims.getIssuedAt());
             userInfoResponse.setExpiresAt(claims.getExpiration());
 
@@ -147,6 +148,13 @@ public class UserController {
         }
     }
 
+    private void validateUser(NewUserRequestDTO user) {
+        if (user == null || Objects.isNull(user.getUsername()) || user.getUsername().isBlank() ||
+                Objects.isNull(user.getEmail()) || user.getEmail().isBlank() ||
+                Objects.isNull(user.getPassword()) || user.getPassword().isBlank()) {
+            throw new InvalidRequestException("User details cannot be null or incomplete");
+        }
+    }
     private void validateUser(User user) {
         if (user == null || Objects.isNull(user.getUsername()) || user.getUsername().isBlank() ||
                 Objects.isNull(user.getEmail()) || user.getEmail().isBlank() ||
