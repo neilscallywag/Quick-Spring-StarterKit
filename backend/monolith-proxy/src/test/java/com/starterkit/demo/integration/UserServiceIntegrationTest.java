@@ -1,13 +1,8 @@
 package com.starterkit.demo.integration;
 
-import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
 
-import com.starterkit.demo.dto.NewUserRequestDTO;
-import com.starterkit.demo.dto.UserResponseDTO;
-import com.starterkit.demo.model.EnumRole;
-import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.repository.UserRepository;
 import com.starterkit.demo.service.RoleService;
@@ -23,14 +18,11 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 public class UserServiceIntegrationTest {
@@ -56,91 +48,132 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getAllUsers_ReturnsUserPage() {
+    public void getAllUsers_WithNameFilter_ReturnsFilteredUserPage() {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")))).thenReturn(page);
+        when(userRepository.findByNameContaining(anyString(), any(PageRequest.class))).thenReturn(page);
 
-        Page<User> result = userService.getAllUsers(0, 10, null, null, "id", "asc");
+        Page<User> result = userService.getAllUsers(0, 10, "test", null, "id", "asc");
 
         assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
     }
 
     @Test
-    public void getAllUsers_WithSorting_ReturnsSortedUserPage() {
-        User user1 = new User();
-        user1.setUsername("buser");
-        User user2 = new User();
-        user2.setUsername("auser");
-        Page<User> page = new PageImpl<>(List.of(user1, user2), PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "username")), 2);
-        when(userRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "username")))).thenReturn(page);
-
-        Page<User> result = userService.getAllUsers(0, 10, null, null, "username", "desc");
-
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getUsername()).isEqualTo("buser");
-        assertThat(result.getContent().get(1).getUsername()).isEqualTo("auser");
-    }
-
-
-    @Test
-    public void createUser_SavesAndReturnsUser() {
-        NewUserRequestDTO dto = new NewUserRequestDTO();
-        dto.setUsername("newuser");
-        dto.setPassword("password");
-        dto.setName("New User");
-        dto.setEmail("newuser@example.com");
-
-        Role role = new Role();
-        role.setName(EnumRole.ROLE_USER);
-
-        when(passwordEncoder.encode("password")).thenReturn("encodedpassword");
-        when(roleService.findRoleByName(EnumRole.ROLE_USER)).thenReturn(role);
-
-        User user = NewUserRequestDTO.toUser(dto);
-        user.setPassword("encodedpassword");
-        user.getRoles().add(role);
-
-        when(userRepository.save(user)).thenReturn(user);
-
-        UserResponseDTO response = userService.createUser(dto);
-
-        assertThat(response.getUsername()).isEqualTo("newuser");
-        assertThat(response.getName()).isEqualTo("New User");
-        assertThat(response.getRoles()).hasSize(1);
-    }
-
-    @Test
-    public void login_ValidCredentials_ReturnsToken() {
+    public void getAllUsers_WithEmailFilter_ReturnsFilteredUserPage() {
         User user = new User();
         user.setUsername("testuser");
-        user.setPassword("encodedpassword");
-        Role role = new Role();
-        role.setName(EnumRole.ROLE_USER);
-        user.setRoles(Set.of(role));
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.findByEmailContaining(anyString(), any(PageRequest.class))).thenReturn(page);
 
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("password", "encodedpassword")).thenReturn(true);
-        when(jwtUtil.generateToken(Map.of("roles", List.of("ROLE_USER")), "testuser")).thenReturn("token");
+        Page<User> result = userService.getAllUsers(0, 10, null, "test@example.com", "id", "asc");
 
-        HttpServletResponse response = new MockHttpServletResponse();
-        String token = userService.login("testuser", "password", response);
-
-        assertThat(token).isEqualTo("token");
-        Cookie cookie = ((MockHttpServletResponse) response).getCookie("JWT_TOKEN");
-        assertThat(cookie).isNotNull();
-        assertThat(cookie.getValue()).isEqualTo("token");
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
     }
 
     @Test
-    public void login_InvalidCredentials_ThrowsException() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
+    public void getAllUsers_WithNameAndEmailFilter_ReturnsFilteredUserPage() {
+        User user = new User();
+        user.setUsername("testuser");
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.findByNameContainingAndEmailContaining(anyString(), anyString(), any(PageRequest.class))).thenReturn(page);
 
+        Page<User> result = userService.getAllUsers(0, 10, "test", "test@example.com", "id", "asc");
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+    }
+
+    @Test
+    public void getTotalCount_WithNameFilter_ReturnsCount() {
+        when(userRepository.countByNameContaining(anyString())).thenReturn(1L);
+
+        long count = userService.getTotalCount("test", null);
+
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    public void getTotalCount_WithEmailFilter_ReturnsCount() {
+        when(userRepository.countByEmailContaining(anyString())).thenReturn(1L);
+
+        long count = userService.getTotalCount(null, "test@example.com");
+
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    public void getTotalCount_WithNameAndEmailFilter_ReturnsCount() {
+        when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString())).thenReturn(1L);
+
+        long count = userService.getTotalCount("test", "test@example.com");
+
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    public void updateUser_WithExistingUser_ReturnsUpdatedUser() {
+        UUID userId = UUID.randomUUID();
+        User userDetails = new User();
+        userDetails.setUsername("updateduser");
+        userDetails.setPassword("updatedpassword");
+
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setUsername("olduser");
+        existingUser.setPassword("oldpassword");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(passwordEncoder.encode("updatedpassword")).thenReturn("encodedpassword");
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+
+        User updatedUser = userService.updateUser(userId, userDetails);
+
+        assertThat(updatedUser.getUsername()).isEqualTo("updateduser");
+        assertThat(updatedUser.getPassword()).isEqualTo("encodedpassword");
+    }
+
+    @Test
+    public void getUserById_UserNotFound_ThrowsException() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getUserById(userId))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("User not found");
+    }
+
+    @Test
+    public void getUserByUsername_UserNotFound_ThrowsException() {
+        String username = "nonexistentuser";
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getUserByUsername(username))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("User not found");
+    }
+
+    @Test
+    public void deleteUser_UserDeletedSuccessfully() {
+        UUID userId = UUID.randomUUID();
+        doNothing().when(userRepository).deleteById(userId);
+
+        userService.deleteUser(userId);
+
+        verify(userRepository, times(1)).deleteById(userId);
+    }
+
+    @Test
+    public void logout_SuccessfullyClearsCookie() {
         HttpServletResponse response = new MockHttpServletResponse();
 
-        assertThatThrownBy(() -> userService.login("testuser", "password", response))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Invalid username or password");
+        userService.logout(response, "token");
+
+        Cookie cookie = ((MockHttpServletResponse) response).getCookie("JWT_TOKEN");
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.getValue()).isNull();
+        assertThat(cookie.getMaxAge()).isEqualTo(0);
     }
 }

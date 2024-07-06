@@ -1,6 +1,8 @@
 package com.starterkit.demo.unit;
 
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,6 +25,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -141,6 +147,16 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void getUserByUsername_UserNotFound_ThrowsException() {
+        String username = "nonexistentuser";
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getUserByUsername(username))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("User not found");
+    }
+
+    @Test
     void updateUser_ValidId_UpdatesUser() {
         UUID userId = UUID.randomUUID();
         User existingUser = new User();
@@ -175,5 +191,71 @@ class UserServiceUnitTest {
         assertThat(cookie).isNotNull();
         assertThat(cookie.getValue()).isNull();
         assertThat(cookie.getMaxAge()).isEqualTo(0);
+    }
+
+    @Test
+    void getAllUsers_WithNameFilter_ReturnsFilteredUserPage() {
+        User user = new User();
+        user.setUsername("testuser");
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.findByNameContaining(anyString(), any(PageRequest.class))).thenReturn(page);
+
+        Page<User> result = userService.getAllUsers(0, 10, "test", null, "id", "asc");
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+    }
+
+    @Test
+    void getAllUsers_WithEmailFilter_ReturnsFilteredUserPage() {
+        User user = new User();
+        user.setUsername("testuser");
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.findByEmailContaining(anyString(), any(PageRequest.class))).thenReturn(page);
+
+        Page<User> result = userService.getAllUsers(0, 10, null, "test@example.com", "id", "asc");
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+    }
+
+    @Test
+    void getAllUsers_WithNameAndEmailFilter_ReturnsFilteredUserPage() {
+        User user = new User();
+        user.setUsername("testuser");
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.findByNameContainingAndEmailContaining(anyString(), anyString(), any(PageRequest.class))).thenReturn(page);
+
+        Page<User> result = userService.getAllUsers(0, 10, "test", "test@example.com", "id", "asc");
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+    }
+
+    @Test
+    void getTotalCount_WithNameFilter_ReturnsCount() {
+        when(userRepository.countByNameContaining(anyString())).thenReturn(1L);
+
+        long count = userService.getTotalCount("test", null);
+
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    void getTotalCount_WithEmailFilter_ReturnsCount() {
+        when(userRepository.countByEmailContaining(anyString())).thenReturn(1L);
+
+        long count = userService.getTotalCount(null, "test@example.com");
+
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    void getTotalCount_WithNameAndEmailFilter_ReturnsCount() {
+        when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString())).thenReturn(1L);
+
+        long count = userService.getTotalCount("test", "test@example.com");
+
+        assertThat(count).isEqualTo(1);
     }
 }
