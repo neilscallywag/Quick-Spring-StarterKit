@@ -1,3 +1,4 @@
+/* (C)2024 */
 package com.starterkit.demo.service;
 
 import com.starterkit.demo.dto.NewUserRequestDTO;
@@ -8,10 +9,13 @@ import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.repository.UserRepository;
 import com.starterkit.demo.util.JwtUtil;
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,14 +24,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
@@ -35,18 +34,19 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final RoleService roleService;
 
-    @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RoleService roleService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-        this.roleService = roleService;
-    }
-
-    public Page<User> getAllUsers(int page, int size, String nameFilter, String emailFilter, String sortField, String sortOrder) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortOrder), sortField));
+    public Page<User> getAllUsers(
+            int page,
+            int size,
+            String nameFilter,
+            String emailFilter,
+            String sortField,
+            String sortOrder) {
+        Pageable pageable =
+                PageRequest.of(
+                        page, size, Sort.by(Sort.Direction.fromString(sortOrder), sortField));
         if (nameFilter != null && emailFilter != null) {
-            return userRepository.findByNameContainingAndEmailContaining(nameFilter, emailFilter, pageable);
+            return userRepository.findByNameContainingAndEmailContaining(
+                    nameFilter, emailFilter, pageable);
         } else if (nameFilter != null) {
             return userRepository.findByNameContaining(nameFilter, pageable);
         } else if (emailFilter != null) {
@@ -55,6 +55,7 @@ public class UserService {
             return userRepository.findAll(pageable);
         }
     }
+
     public long getTotalCount(String nameFilter, String emailFilter) {
         if (nameFilter != null && emailFilter != null) {
             return userRepository.countByNameContainingAndEmailContaining(nameFilter, emailFilter);
@@ -66,19 +67,23 @@ public class UserService {
             return userRepository.count();
         }
     }
-    
 
     public User getUserById(UUID id) {
-        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
     public UserResponseDTO createUser(NewUserRequestDTO userRequestDTO) {
         userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         User user = NewUserRequestDTO.toUser(userRequestDTO);
-        
+
         Role defaultRole = roleService.findRoleByName(EnumRole.ROLE_USER);
 
         user.getRoles().add(defaultRole);
@@ -97,12 +102,16 @@ public class UserService {
         response.setPhoneNumber(user.getPhoneNumber());
         response.setDateOfBirth(user.getDateOfBirth());
 
-        Set<RoleDTO> roleDTOs = user.getRoles().stream().map(role -> {
-            RoleDTO roleDTO = new RoleDTO();
-            roleDTO.setId(role.getId());
-            roleDTO.setName(role.getName());
-            return roleDTO;
-        }).collect(Collectors.toSet());
+        Set<RoleDTO> roleDTOs =
+                user.getRoles().stream()
+                        .map(
+                                role -> {
+                                    RoleDTO roleDTO = new RoleDTO();
+                                    roleDTO.setId(role.getId());
+                                    roleDTO.setName(role.getName());
+                                    return roleDTO;
+                                })
+                        .collect(Collectors.toSet());
         response.setRoles(roleDTOs);
 
         response.setProvider(user.getProvider());
@@ -135,14 +144,17 @@ public class UserService {
     }
 
     public String login(String username, String password, HttpServletResponse response) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() -> new RuntimeException("Invalid username or password"));
         if (passwordEncoder.matches(password, user.getPassword())) {
-            Map<String, Object> claims = Map.of(
-                "roles", user.getRoles().stream()
-                    .map(role -> role.getName().name())
-                    .collect(Collectors.toList())
-            );
+            Map<String, Object> claims =
+                    Map.of(
+                            "roles",
+                            user.getRoles().stream()
+                                    .map(role -> role.getName().name())
+                                    .collect(Collectors.toList()));
             String token = jwtUtil.generateToken(claims, user.getUsername());
             Cookie cookie = new Cookie("JWT_TOKEN", token);
             cookie.setHttpOnly(true);
@@ -155,7 +167,7 @@ public class UserService {
             throw new RuntimeException("Invalid username or password");
         }
     }
-    
+
     public void logout(HttpServletResponse response, String token) {
         try {
             Cookie cookie = new Cookie("JWT_TOKEN", null);
