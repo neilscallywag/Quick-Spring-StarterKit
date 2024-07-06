@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,8 +43,8 @@ public class UserService {
         this.roleService = roleService;
     }
 
-    public Page<User> getAllUsers(int page, int size, String nameFilter, String emailFilter) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<User> getAllUsers(int page, int size, String nameFilter, String emailFilter, String sortField, String sortOrder) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortOrder), sortField));
         if (nameFilter != null && emailFilter != null) {
             return userRepository.findByNameContainingAndEmailContaining(nameFilter, emailFilter, pageable);
         } else if (nameFilter != null) {
@@ -54,11 +55,26 @@ public class UserService {
             return userRepository.findAll(pageable);
         }
     }
+    public long getTotalCount(String nameFilter, String emailFilter) {
+        if (nameFilter != null && emailFilter != null) {
+            return userRepository.countByNameContainingAndEmailContaining(nameFilter, emailFilter);
+        } else if (nameFilter != null) {
+            return userRepository.countByNameContaining(nameFilter);
+        } else if (emailFilter != null) {
+            return userRepository.countByEmailContaining(emailFilter);
+        } else {
+            return userRepository.count();
+        }
+    }
+    
 
     public User getUserById(UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+    }
     public UserResponseDTO createUser(NewUserRequestDTO userRequestDTO) {
         userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         User user = NewUserRequestDTO.toUser(userRequestDTO);

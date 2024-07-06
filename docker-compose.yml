@@ -16,7 +16,6 @@ services:
       timeout: 10s
       retries: 3
 
-
   db:
     image: postgres:13
     environment:

@@ -45,18 +45,20 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String nameFilter,
-            @RequestParam(required = false) String emailFilter) {
-    
-        Page<User> userPage = userService.getAllUsers(page, size, nameFilter, emailFilter);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(userPage, "/api/users");
-        List<UserResponseDTO> userResponses = userPage.getContent().stream()
-                .map(UserResponseDTO::convertToUserResponseDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok().headers(headers).body(userResponses);
-    }
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String nameFilter,
+        @RequestParam(required = false) String emailFilter,
+        @RequestParam(defaultValue = "id") String sortField,
+        @RequestParam(defaultValue = "asc") String sortOrder) {
+
+    Page<User> userPage = userService.getAllUsers(page, size, nameFilter, emailFilter, sortField, sortOrder);
+    HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(userPage, "/api/users");
+    List<UserResponseDTO> userResponses = userPage.getContent().stream()
+            .map(UserResponseDTO::convertToUserResponseDTO)
+            .collect(Collectors.toList());
+    return ResponseEntity.ok().headers(headers).body(userResponses);
+}
     
 
     @GetMapping("/{id}")

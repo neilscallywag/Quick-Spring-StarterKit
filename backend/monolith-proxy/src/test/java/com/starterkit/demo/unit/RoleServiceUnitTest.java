@@ -17,7 +17,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
 
-public class RoleServiceTest {
+public class RoleServiceUnitTest {
 
     @Mock
     private RoleRepository roleRepository;

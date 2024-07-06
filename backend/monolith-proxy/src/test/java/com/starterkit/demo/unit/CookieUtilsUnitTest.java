@@ -14,7 +14,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
- class CookieUtilsTest {
+ class CookieUtilsUnitTest {
 
     private CookieUtils cookieUtils;
     private HttpServletRequest request;

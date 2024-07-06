@@ -101,6 +101,9 @@ public class SecurityConfig {
         config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
+        // for getAllUsers
+        config.addExposedHeader("X-Total-Count"); 
+
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }

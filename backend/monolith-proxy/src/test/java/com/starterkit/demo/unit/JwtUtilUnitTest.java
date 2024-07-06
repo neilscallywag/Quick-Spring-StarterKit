@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
         "jwt.expiration=50000",
         "jwt.clockSkew=5000"
 })
-class JwtUtilTest {
+class JwtUtilUnitTest {
 
     @Autowired
     private JwtUtil jwtUtil;

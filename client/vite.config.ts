@@ -7,6 +7,7 @@ import { VitePWA } from "vite-plugin-pwa";
 export default defineConfig({
   plugins: [
     react(),
+    // eslint-disable-next-line new-cap
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",

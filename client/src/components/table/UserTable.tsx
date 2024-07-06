@@ -1,4 +1,3 @@
-// src/components/UserTable.tsx
 import { useMemo } from "react";
 import { FaPencilAlt } from "react-icons/fa";
 import { DeleteIcon, ViewIcon } from "@chakra-ui/icons";

@@ -24,4 +24,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u FROM User u WHERE u.email LIKE %:email%")
     Page<User> findByEmailContaining(@Param("email") String email, Pageable pageable);
+
+    long countByNameContaining(String name);
+    long countByEmailContaining(String email);
+    long countByNameContainingAndEmailContaining(String name, String email);
 }

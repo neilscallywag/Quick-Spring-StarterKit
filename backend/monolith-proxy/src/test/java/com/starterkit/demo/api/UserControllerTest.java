@@ -1,265 +1,179 @@
 // package com.starterkit.demo.api;
 
-// import com.starterkit.demo.AppConfig;
-// import com.starterkit.demo.TestSecurityConfig;
-// import com.starterkit.demo.controller.UserController;
+// import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.starterkit.demo.DemoApplication;
+// import com.starterkit.demo.config.TestContainersConfig;
+// import com.starterkit.demo.config.TestSecurityConfig;
 // import com.starterkit.demo.dto.LocalLoginRequestDTO;
-// import com.starterkit.demo.dto.MeResponseDTO;
-// import com.starterkit.demo.dto.UserResponseDTO;
-// import com.starterkit.demo.exception.ResourceNotFoundException;
+// import com.starterkit.demo.dto.NewUserRequestDTO;
 // import com.starterkit.demo.model.User;
+// import com.starterkit.demo.repository.UserRepository;
 // import com.starterkit.demo.service.UserService;
 // import com.starterkit.demo.util.JwtUtil;
-
-// import io.jsonwebtoken.Claims;
-// import io.jsonwebtoken.ClaimsBuilder;
-// import io.jsonwebtoken.ClaimsMutator;
-// import io.jsonwebtoken.Jwts;
 // import jakarta.servlet.http.Cookie;
-// import jakarta.servlet.http.HttpServletResponse;
+// import org.junit.jupiter.api.BeforeEach;
 // import org.junit.jupiter.api.Test;
+// import org.junit.jupiter.api.extension.ExtendWith;
+// import org.mockito.Mockito;
 // import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 // import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-// import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 // import org.springframework.boot.test.context.SpringBootTest;
 // import org.springframework.boot.test.mock.mockito.MockBean;
-// import org.springframework.context.annotation.Import;
-// import org.springframework.data.domain.Page;
-// import org.springframework.data.domain.PageImpl;
+// import org.springframework.http.HttpHeaders;
 // import org.springframework.http.MediaType;
-// import org.springframework.test.context.TestPropertySource;
+// import org.springframework.security.test.context.support.WithMockUser;
+// import org.springframework.test.context.ActiveProfiles;
+// import org.springframework.test.context.ContextConfiguration;
+// import org.springframework.test.context.junit.jupiter.SpringExtension;
 // import org.springframework.test.web.servlet.MockMvc;
+// import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-// import java.util.Collections;
-// import java.util.Date;
-// import java.util.List;
+// import java.util.Optional;
 // import java.util.UUID;
 
-// import static org.mockito.ArgumentMatchers.any;
-// import static org.mockito.ArgumentMatchers.anyString;
-// import static org.mockito.Mockito.doNothing;
-// import static org.mockito.Mockito.when;
-// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+// import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 // import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// @SpringBootTest
-// @Import({TestSecurityConfig.class})
+// @ExtendWith(SpringExtension.class)
 // @AutoConfigureMockMvc
-// @AutoConfigureJsonTesters
-// @TestPropertySource(properties = {
-//         "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration," +
-//                                       "org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration"
-// })
+// @ContextConfiguration(classes = {DemoApplication.class, TestSecurityConfig.class, TestContainersConfig.class})
+// @SpringBootTest
+// @ActiveProfiles("test")
 // class UserControllerTest {
 
 //     @Autowired
 //     private MockMvc mockMvc;
 
+//     @Autowired
+//     private ObjectMapper objectMapper;
+
 //     @MockBean
 //     private UserService userService;
 
 //     @MockBean
+//     private UserRepository userRepository;
+
+//     @MockBean
 //     private JwtUtil jwtUtil;
 
+//     @BeforeEach
+//     void setup() {
+//         // Create a mock user with all necessary details
+//         User mockUser = new User();
+//         mockUser.setUsername("mockUser");
+//         mockUser.setPassword("{noop}mockPassword");
+//         mockUser.setEmail("mockuser@example.com");
+//         mockUser.setId(UUID.randomUUID()); // Assuming an ID is also required
+//         // Set other necessary fields if required
+    
+//         // Mock the behavior of the userRepository to return this mockUser when called
+//         Mockito.when(userRepository.findByUsername("mockUser")).thenReturn(Optional.of(mockUser));
+//         Mockito.when(jwtUtil.isTokenExpired("dummyToken")).thenReturn(false);
+//     }
+
 //     @Test
+//     @WithMockUser(username = "mockUser")
 //     void testGetUsers() throws Exception {
-//         Page<User> userPage = new PageImpl<>(Collections.emptyList());
-//         when(userService.getAllUsers(0, 10, null, null)).thenReturn(userPage);
-
-//         mockMvc.perform(get("/api/users"))
+//         mockMvc.perform(MockMvcRequestBuilders.get("/api/users")
+//                 .with(csrf())
+//                 .param("page", "0")
+//                 .param("size", "10"))
 //                 .andExpect(status().isOk())
-//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                 .andExpect(jsonPath("$").isEmpty());
+//                 .andExpect(header().exists(HttpHeaders.CONTENT_TYPE))
+//                 .andExpect(jsonPath("$").isArray());
 //     }
 
 //     @Test
-//     void testGetUsers_WithFilters() throws Exception {
-//         User user = new User();
-//         user.setUsername("testuser");
-//         Page<User> userPage = new PageImpl<>(List.of(user));
-
-//         when(userService.getAllUsers(0, 10, "testuser", "test@example.com"))
-//                 .thenReturn(userPage);
-
-//         mockMvc.perform(get("/api/users")
-//                         .param("nameFilter", "testuser")
-//                         .param("emailFilter", "test@example.com"))
-//                 .andExpect(status().isOk())
-//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                 .andExpect(jsonPath("$[0].username").value("testuser"));
-//     }
-
-
-//     @Test
+//     @WithMockUser(username = "mockUser")
 //     void testGetUserById() throws Exception {
 //         UUID userId = UUID.randomUUID();
-//         User user = new User();
-//         user.setId(userId);
+//         Mockito.when(userService.getUserById(userId)).thenReturn(new User());
 
-//         when(userService.getUserById(userId)).thenReturn(user);
-
-//         mockMvc.perform(get("/api/users/{id}", userId))
+//         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/{id}", userId)
+//                 .with(csrf()))
 //                 .andExpect(status().isOk())
-//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                 .andExpect(jsonPath("$.id").value(userId.toString()));
+//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 //     }
 
 //     @Test
-//     void testGetUserById_NotFound() throws Exception {
-//         UUID userId = UUID.randomUUID();
-
-//         when(userService.getUserById(userId)).thenThrow(new ResourceNotFoundException("User not found"));
-
-//         mockMvc.perform(get("/api/users/{id}", userId))
-//                 .andExpect(status().isNotFound());
-//     }
-
-//     @Test
+//     @WithMockUser(username = "mockUser")
 //     void testCreateUser() throws Exception {
-//         UserResponseDTO userResponseDTO = new UserResponseDTO();
-//         userResponseDTO.setUsername("testuser");
-//         userResponseDTO.setEmail("testuser@example.com");
+//         NewUserRequestDTO newUser = new NewUserRequestDTO();
+//         newUser.setUsername("testuser");
+//         newUser.setEmail("test@example.com");
+//         newUser.setPassword("password");
 
-//         when(userService.createUser(any(User.class))).thenReturn(userResponseDTO);
-
-//         mockMvc.perform(post("/api/users")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content("{ \"username\": \"testuser\", \"email\": \"testuser@example.com\", \"password\": \"password\" }"))
+//         mockMvc.perform(MockMvcRequestBuilders.post("/api/users/register")
+//                 .with(csrf())
+//                 .contentType(MediaType.APPLICATION_JSON)
+//                 .content(objectMapper.writeValueAsString(newUser)))
 //                 .andExpect(status().isOk())
-//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                 .andExpect(jsonPath("$.username").value("testuser"))
-//                 .andExpect(jsonPath("$.email").value("testuser@example.com"));
+//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 //     }
 
 //     @Test
-//     void testCreateUser_InvalidRequest() throws Exception {
-//         mockMvc.perform(post("/api/users")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content("{ \"username\": \"\", \"email\": \"\", \"password\": \"\" }"))
-//                 .andExpect(status().isBadRequest());
-//     }
-
-//     @Test
+//     @WithMockUser(username = "mockUser")
 //     void testUpdateUser() throws Exception {
 //         UUID userId = UUID.randomUUID();
 //         User user = new User();
 //         user.setUsername("updateduser");
-//         user.setEmail("updateduser@example.com");
+//         user.setEmail("updated@example.com");
 //         user.setPassword("newpassword");
 
-//         when(userService.updateUser(any(UUID.class), any(User.class))).thenReturn(user);
-
-//         mockMvc.perform(put("/api/users/{id}", userId)
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content("{ \"username\": \"updateduser\", \"email\": \"updateduser@example.com\", \"password\": \"newpassword\" }"))
+//         mockMvc.perform(MockMvcRequestBuilders.put("/api/users/{id}", userId)
+//                 .with(csrf())
+//                 .contentType(MediaType.APPLICATION_JSON)
+//                 .content(objectMapper.writeValueAsString(user)))
 //                 .andExpect(status().isOk())
-//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                 .andExpect(jsonPath("$.username").value("updateduser"))
-//                 .andExpect(jsonPath("$.email").value("updateduser@example.com"));
+//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 //     }
 
 //     @Test
-//     void testUpdateUser_InvalidRequest() throws Exception {
-//         UUID userId = UUID.randomUUID();
-
-//         mockMvc.perform(put("/api/users/{id}", userId)
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content("{ \"username\": \"\", \"email\": \"\", \"password\": \"\" }"))
-//                 .andExpect(status().isBadRequest());
-//     }
-
-//     @Test
+//     @WithMockUser(username = "mockUser")
 //     void testDeleteUser() throws Exception {
 //         UUID userId = UUID.randomUUID();
-//         doNothing().when(userService).deleteUser(userId);
 
-//         mockMvc.perform(delete("/api/users/{id}", userId))
+//         mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", userId)
+//                 .with(csrf()))
 //                 .andExpect(status().isNoContent());
 //     }
 
 //     @Test
-//     void testDeleteUser_NotFound() throws Exception {
-//         UUID userId = UUID.randomUUID();
-//         doNothing().when(userService).deleteUser(userId);
-
-//         mockMvc.perform(delete("/api/users/{id}", userId))
-//                 .andExpect(status().isNoContent());
-//     }
-
-//     @Test
+//     @WithMockUser(username = "mockUser")
 //     void testLogin() throws Exception {
 //         LocalLoginRequestDTO loginRequest = new LocalLoginRequestDTO();
 //         loginRequest.setUsername("testuser");
 //         loginRequest.setPassword("password");
 
-//         when(userService.login(anyString(), anyString(), any(HttpServletResponse.class))).thenReturn("login-token");
-
-//         mockMvc.perform(post("/api/users/login")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content("{ \"username\": \"testuser\", \"password\": \"password\" }"))
+//         mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
+//                 .with(csrf())
+//                 .contentType(MediaType.APPLICATION_JSON)
+//                 .content(objectMapper.writeValueAsString(loginRequest)))
 //                 .andExpect(status().isOk())
-//                 .andExpect(content().string("login-token"));
+//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 //     }
 
 //     @Test
-//     void testLogin_InvalidRequest() throws Exception {
-//         mockMvc.perform(post("/api/users/login")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content("{ \"username\": \"\", \"password\": \"\" }"))
-//                 .andExpect(status().isBadRequest());
-//     }
-
-//     @Test
-//     void testLogout() throws Exception {
-//         doNothing().when(userService).logout(any(HttpServletResponse.class), anyString());
-
-//         mockMvc.perform(post("/api/users/logout")
-//                         .cookie(new Cookie("JWT_TOKEN", "token")))
-//                 .andExpect(status().isOk())
-//                 .andExpect(content().string("Logged out successfully"));
-//     }
-
-//     @Test
-//     void testLogout_InvalidRequest() throws Exception {
-//         mockMvc.perform(post("/api/users/logout"))
-//                 .andExpect(status().isBadRequest());
-//     }
-
-//     @Test
+//     @WithMockUser(username = "mockUser")
 //     void testGetMe() throws Exception {
-//         when(jwtUtil.isTokenExpired(anyString())).thenReturn(false);
-//         when(jwtUtil.getClaimsFromToken(anyString())).thenReturn(createMockClaims());
+//         String token = "dummyToken";
+//         Mockito.when(jwtUtil.isTokenExpired(token)).thenReturn(false);
 
-//         mockMvc.perform(post("/api/users/me")
-//                         .cookie(new Cookie("JWT_TOKEN", "valid-token")))
+//         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/me")
+//                 .with(csrf())
+//                 .cookie(new Cookie("JWT_TOKEN", token)))
 //                 .andExpect(status().isOk())
-//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                 .andExpect(jsonPath("$.username").value("testuser"))
-//                 .andExpect(jsonPath("$.roles[0]").value("ROLE_USER"));
+//                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 //     }
 
 //     @Test
-//     void testGetMe_ExpiredToken() throws Exception {
-//         when(jwtUtil.isTokenExpired(anyString())).thenReturn(true);
+//     @WithMockUser(username = "mockUser")
+//     void testLogout() throws Exception {
+//         String token = "dummyToken";
 
-//         mockMvc.perform(post("/api/users/me")
-//                         .cookie(new Cookie("JWT_TOKEN", "expired-token")))
-//                 .andExpect(status().isBadRequest());
-//     }
-
-//     @Test
-//     void testGetMe_NoToken() throws Exception {
-//         mockMvc.perform(post("/api/users/me"))
-//                 .andExpect(status().isBadRequest());
-//     }
-
-//     private Claims createMockClaims() {
-//         ClaimsBuilder claims = Jwts.claims();
-//         claims.subject("testuser");
-//         claims.add("role", List.of("ROLE_USER"));
-//         claims.issuedAt(new Date(System.currentTimeMillis()));
-//         claims.expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60));
-//         return claims.build();
+//         mockMvc.perform(MockMvcRequestBuilders.post("/api/users/logout")
+//                 .with(csrf())
+//                 .cookie(new Cookie("JWT_TOKEN", token)))
+//                 .andExpect(status().isOk());
 //     }
 // }

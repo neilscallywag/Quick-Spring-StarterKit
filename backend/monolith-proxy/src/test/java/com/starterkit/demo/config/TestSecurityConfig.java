@@ -1,5 +1,6 @@
-package com.starterkit.demo;
+package com.starterkit.demo.config;
 
+import com.starterkit.demo.MockJwtAuthenticationFilter;
 import com.starterkit.demo.service.CustomUserDetailsService;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

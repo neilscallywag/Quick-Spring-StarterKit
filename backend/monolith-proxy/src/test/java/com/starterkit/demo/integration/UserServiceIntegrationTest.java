@@ -23,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -32,7 +33,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public class UserServiceTest {
+public class UserServiceIntegrationTest {
 
     @Mock
     private UserRepository userRepository;
@@ -59,12 +60,29 @@ public class UserServiceTest {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
+        when(userRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")))).thenReturn(page);
 
-        Page<User> result = userService.getAllUsers(0, 10, null, null);
+        Page<User> result = userService.getAllUsers(0, 10, null, null, "id", "asc");
 
         assertThat(result.getContent()).hasSize(1);
     }
+
+    @Test
+    public void getAllUsers_WithSorting_ReturnsSortedUserPage() {
+        User user1 = new User();
+        user1.setUsername("buser");
+        User user2 = new User();
+        user2.setUsername("auser");
+        Page<User> page = new PageImpl<>(List.of(user1, user2), PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "username")), 2);
+        when(userRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "username")))).thenReturn(page);
+
+        Page<User> result = userService.getAllUsers(0, 10, null, null, "username", "desc");
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getUsername()).isEqualTo("buser");
+        assertThat(result.getContent().get(1).getUsername()).isEqualTo("auser");
+    }
+
 
     @Test
     public void createUser_SavesAndReturnsUser() {
