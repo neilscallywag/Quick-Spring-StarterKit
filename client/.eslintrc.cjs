@@ -10,6 +10,7 @@ module.exports = {
     "eslint:recommended",
     "plugin:prettier/recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:storybook/recommended"
   ],
   overrides: [
     {

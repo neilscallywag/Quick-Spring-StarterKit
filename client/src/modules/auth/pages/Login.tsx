@@ -78,7 +78,7 @@ const LoginPage = () => {
               <PrimaryButton
                 type="submit"
                 w={{ base: "full", sm: "100%" }}
-                size="lg"
+                size="large"
                 isLoading={isLoading}
               >
                 <Center>
