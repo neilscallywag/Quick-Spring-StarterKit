@@ -67,6 +67,7 @@ const extendedColors: DeepPartial<
   branding: {
     "100": "#1A1E43",
     "200": "#282e69",
+    "300": "#3c4a8b",
   },
 };
 

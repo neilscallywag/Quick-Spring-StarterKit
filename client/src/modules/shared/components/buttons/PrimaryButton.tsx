@@ -37,11 +37,11 @@ const PrimaryButton = forwardRef<HTMLButtonElement, PrimaryButtonProps>(
         leftIcon={leftIcon}
         rightIcon={rightIcon}
         color="white"
-        bg="#1A1E43"
+        bg="branding.100"
         width={isFullWidth ? "100%" : undefined}
         border="none"
-        _hover={{ bg: "#282e69", color: "white" }}
-        _active={{ bg: "#3c4a8b", color: "white" }}
+        _hover={{ bg: "#branding.200", color: "white" }}
+        _active={{ bg: "#branding.300", color: "white" }}
         _disabled={{ bg: "#d3d3d3", color: "#a0a0a0" }}
         {...sizeStyles[size]}
         {...props}

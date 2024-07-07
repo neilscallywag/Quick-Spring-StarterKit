@@ -19,9 +19,9 @@ const PrimaryIconButton: React.FC<PrimaryIconButtonProps> = ({
       <IconButton
         as={href ? "a" : "button"}
         icon={icon}
-        backgroundColor={props.colorScheme === "red" ? "red.600" : "#1A1E43"}
+        backgroundColor={props.colorScheme === "red" ? "red.600" : "branding.100"}
         _hover={{
-          bg: props.colorScheme === "red" ? "red.700" : "#282e69",
+          bg: props.colorScheme === "red" ? "red.700" : "#branding.200",
           color: "white",
         }}
         border="none"

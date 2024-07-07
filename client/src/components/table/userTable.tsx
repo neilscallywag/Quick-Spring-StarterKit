@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { FaPencilAlt } from "react-icons/fa";
 import { DeleteIcon, ViewIcon } from "@chakra-ui/icons";
 import { Box, HStack, IconButton, Tooltip } from "@chakra-ui/react";
@@ -10,7 +10,7 @@ import {
   MRT_Row,
   useMantineReactTable,
 } from "mantine-react-table";
-import { UserTableType } from "src/types/auth/user";
+import { UserTableType } from "../../types/auth/user";
 
 interface UserTableProps {
   data: UserTableType[];
@@ -85,7 +85,7 @@ const UserTable: React.FC<UserTableProps> = ({
                 href={`/users/view/${row.original.id}/edit/`}
               />
             </Tooltip>
-            <Tooltip hasArrow label="View User" bg="branding.100">
+            <Tooltip hasArrow label="View User" bg="#1A1E43">
               <IconButton
                 aria-label="ViewUser"
                 as="a"
