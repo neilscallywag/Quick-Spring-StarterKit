@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.util.UriComponentsBuilder;
 
+// TODO: Convert the class to SINGLETON
 public final class PaginationUtil {
 
     private PaginationUtil() {

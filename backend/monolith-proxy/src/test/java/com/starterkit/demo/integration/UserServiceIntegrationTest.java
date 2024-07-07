@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class UserServiceIntegrationTest {
+ class UserServiceIntegrationTest {
 
     @Mock
     private UserRepository userRepository;
@@ -48,7 +48,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getAllUsers_WithNameFilter_ReturnsFilteredUserPage() {
+     void getAllUsers_WithNameFilter_ReturnsFilteredUserPage() {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
@@ -61,7 +61,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getAllUsers_WithEmailFilter_ReturnsFilteredUserPage() {
+     void getAllUsers_WithEmailFilter_ReturnsFilteredUserPage() {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
@@ -74,7 +74,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getAllUsers_WithNameAndEmailFilter_ReturnsFilteredUserPage() {
+     void getAllUsers_WithNameAndEmailFilter_ReturnsFilteredUserPage() {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
@@ -87,7 +87,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getTotalCount_WithNameFilter_ReturnsCount() {
+     void getTotalCount_WithNameFilter_ReturnsCount() {
         when(userRepository.countByNameContaining(anyString())).thenReturn(1L);
 
         long count = userService.getTotalCount("test", null);
@@ -96,7 +96,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getTotalCount_WithEmailFilter_ReturnsCount() {
+     void getTotalCount_WithEmailFilter_ReturnsCount() {
         when(userRepository.countByEmailContaining(anyString())).thenReturn(1L);
 
         long count = userService.getTotalCount(null, "test@example.com");
@@ -105,7 +105,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getTotalCount_WithNameAndEmailFilter_ReturnsCount() {
+     void getTotalCount_WithNameAndEmailFilter_ReturnsCount() {
         when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString())).thenReturn(1L);
 
         long count = userService.getTotalCount("test", "test@example.com");
@@ -114,7 +114,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void updateUser_WithExistingUser_ReturnsUpdatedUser() {
+     void updateUser_WithExistingUser_ReturnsUpdatedUser() {
         UUID userId = UUID.randomUUID();
         User userDetails = new User();
         userDetails.setUsername("updateduser");
@@ -136,7 +136,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getUserById_UserNotFound_ThrowsException() {
+     void getUserById_UserNotFound_ThrowsException() {
         UUID userId = UUID.randomUUID();
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -146,7 +146,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void getUserByUsername_UserNotFound_ThrowsException() {
+     void getUserByUsername_UserNotFound_ThrowsException() {
         String username = "nonexistentuser";
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
@@ -156,7 +156,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void deleteUser_UserDeletedSuccessfully() {
+     void deleteUser_UserDeletedSuccessfully() {
         UUID userId = UUID.randomUUID();
         doNothing().when(userRepository).deleteById(userId);
 
@@ -166,7 +166,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    public void logout_SuccessfullyClearsCookie() {
+     void logout_SuccessfullyClearsCookie() {
         HttpServletResponse response = new MockHttpServletResponse();
 
         userService.logout(response, "token");

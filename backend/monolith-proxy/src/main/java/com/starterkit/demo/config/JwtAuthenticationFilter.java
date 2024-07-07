@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,16 +29,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userService) {
+    public JwtAuthenticationFilter(@NonNull JwtUtil jwtUtil, @NonNull CustomUserDetailsService userService) {
         this.jwtUtil = jwtUtil;
         this.userService = userService;
     }
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getRequestURI();
         if (shouldSkipFilter(path)) {
@@ -64,10 +65,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean shouldSkipFilter(String path) {
-        return path.startsWith("/actuator/health") || path.startsWith("/api/users/login") || path.startsWith("/api/users/logout") || path.startsWith("/api/users/register");
+        return path.startsWith("/actuator/health") ||  path.startsWith("/actuator/prometheus") || path.startsWith("/api/users/login") || path.startsWith("/api/users/logout") || path.startsWith("/api/users/register");
     }
 
-    private void setAuthenticationContext(String jwt, HttpServletRequest request) {
+    private void setAuthenticationContext(String jwt, @NonNull HttpServletRequest request) {
         String username = jwtUtil.getUserNameFromToken(jwt);
         UserDetails userDetails = userService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -76,11 +77,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
-    private String getJwtFromRequest(HttpServletRequest request) {
+    private String getJwtFromRequest(@NonNull HttpServletRequest request) {
         return CookieUtils.getInstance().getCookie(request, "JWT_TOKEN").map(Cookie::getValue).orElse(null);
     }
 
-    private void handleAuthenticationException(HttpServletResponse response, AuthenticationException ex) throws IOException {
+    private void handleAuthenticationException(@NonNull HttpServletResponse response, @NonNull AuthenticationException ex) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         new ObjectMapper().writeValue(response.getOutputStream(), Collections.singletonMap("error", ex.getMessage()));

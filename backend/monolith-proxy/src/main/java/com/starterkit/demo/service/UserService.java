@@ -4,6 +4,7 @@ package com.starterkit.demo.service;
 import com.starterkit.demo.dto.NewUserRequestDTO;
 import com.starterkit.demo.dto.RoleDTO;
 import com.starterkit.demo.dto.UserResponseDTO;
+import com.starterkit.demo.exception.AuthenticationException;
 import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
@@ -16,6 +17,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -164,7 +168,7 @@ public class UserService {
             response.addCookie(cookie);
             return token;
         } else {
-            throw new RuntimeException("Invalid username or password");
+            throw new AuthenticationException("Invalid username or password");
         }
     }
 
@@ -177,7 +181,8 @@ public class UserService {
             cookie.setMaxAge(0);
             response.addCookie(cookie);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to Logout");
+            log.warn("Failed to log out :" +token);
+            throw new AuthenticationException("Failed to Logout");
         }
     }
 }

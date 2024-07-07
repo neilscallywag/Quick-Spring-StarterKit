@@ -2,7 +2,6 @@ package com.starterkit.demo.config;
 
 import com.starterkit.demo.service.CustomUserDetailsService;
 import com.starterkit.demo.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,11 +31,26 @@ public class SecurityConfig {
     @Value("${spring.profiles.active:}")
     private String activeProfile;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private static final String ACTUATOR_HEALTH = "/actuator/health";
+    private static final String ACTUATOR_PROMETHEUS = "/actuator/prometheus";
+    private static final String API_USERS_LOGIN = "/api/users/login";
+    private static final String API_USERS_REGISTER = "/api/users/register";
+    private static final String API_USERS_LOGOUT = "/api/users/logout";
+    private static final String PUBLIC = "/public/**";
+    private static final String V3_API_DOCS = "/v3/api-docs/**";
+    private static final String SWAGGER_UI_HTML = "/swagger-ui.html";
+    private static final String SWAGGER_UI = "/swagger-ui/**";
+    private static final String API_USERS_ME = "/api/users/me";
+    private static final String API_USERS_ID = "/api/users/{id}";
+    private static final String API_USERS = "/api/users";
 
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
+    private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService customUserDetailsService;
+
+    public SecurityConfig(JwtUtil jwtUtil, CustomUserDetailsService customUserDetailsService) {
+        this.jwtUtil = jwtUtil;
+        this.customUserDetailsService = customUserDetailsService;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -64,33 +78,34 @@ public class SecurityConfig {
                         exception) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, exception.getMessage())))
                 .authorizeHttpRequests(authorizeHttpRequest -> {
                     authorizeHttpRequest
-                            .requestMatchers("/actuator/health").permitAll()
-                            .requestMatchers("/api/users/login").permitAll()
-                            .requestMatchers("/api/users/register").permitAll()
-                            .requestMatchers("/api/users/logout").permitAll()
-                            .requestMatchers("/public/**").permitAll();
+                            .requestMatchers(ACTUATOR_HEALTH).permitAll()
+                            .requestMatchers(API_USERS_LOGIN).permitAll()
+                            .requestMatchers(API_USERS_REGISTER).permitAll()
+                            .requestMatchers(API_USERS_LOGOUT).permitAll()
+                            .requestMatchers(PUBLIC).permitAll();
 
                     // For dev modes
                     if ("dev".equals(activeProfile) || "staging".equals(activeProfile)) {
                         authorizeHttpRequest
-                                .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/swagger-ui.html").permitAll()
-                                .requestMatchers("/swagger-ui/**").permitAll();
+                                .requestMatchers(ACTUATOR_PROMETHEUS).permitAll()
+                                .requestMatchers(V3_API_DOCS).permitAll()
+                                .requestMatchers(SWAGGER_UI_HTML).permitAll()
+                                .requestMatchers(SWAGGER_UI).permitAll();
                     }
 
-                    // RBAC 
-                    
+                    // RBAC
+
                     authorizeHttpRequest
-                            .requestMatchers(HttpMethod.GET, "/api/users/me")
+                            .requestMatchers(HttpMethod.GET, API_USERS_ME)
                             .hasAnyAuthority(ROLE_USER.name(), ROLE_OFFICER.name(), ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.GET, "/api/users/{id}")
+                            .requestMatchers(HttpMethod.GET, API_USERS_ID)
                             .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.GET, "/api/users")
+                            .requestMatchers(HttpMethod.GET, API_USERS)
                             .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.POST, "/api/users").hasAuthority(ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.PUT, "/api/users/{id}")
+                            .requestMatchers(HttpMethod.POST, API_USERS).hasAuthority(ROLE_MANAGER.name())
+                            .requestMatchers(HttpMethod.PUT, API_USERS_ID)
                             .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasAuthority(ROLE_MANAGER.name())
+                            .requestMatchers(HttpMethod.DELETE, API_USERS_ID).hasAuthority(ROLE_MANAGER.name())
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthenticationFilter(), AuthorizationFilter.class);
@@ -106,7 +121,7 @@ public class SecurityConfig {
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         // for getAllUsers
-        config.addExposedHeader("X-Total-Count"); 
+        config.addExposedHeader("X-Total-Count");
 
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);

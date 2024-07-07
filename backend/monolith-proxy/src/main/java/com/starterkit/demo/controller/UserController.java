@@ -1,6 +1,7 @@
 /* (C)2024 */
 package com.starterkit.demo.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starterkit.demo.dto.*;
 import com.starterkit.demo.exception.*;
 import com.starterkit.demo.model.User;
@@ -19,7 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.togglz.core.manager.FeatureManager;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,7 +28,6 @@ import org.togglz.core.manager.FeatureManager;
 public class UserController {
 
     private final UserService userService;
-    private final FeatureManager featureManager;
     private final JwtUtil jwtUtil;
 
     @GetMapping
@@ -39,13 +39,11 @@ public class UserController {
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "asc") String sortOrder) {
 
-        Page<User> userPage =
-                userService.getAllUsers(page, size, nameFilter, emailFilter, sortField, sortOrder);
+        Page<User> userPage = userService.getAllUsers(page, size, nameFilter, emailFilter, sortField, sortOrder);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(userPage, "/api/users");
-        List<UserResponseDTO> userResponses =
-                userPage.getContent().stream()
-                        .map(UserResponseDTO::convertToUserResponseDTO)
-                        .collect(Collectors.toList());
+        List<UserResponseDTO> userResponses = userPage.getContent().stream()
+                .map(UserResponseDTO::convertToUserResponseDTO)
+                .collect(Collectors.toList());
         return ResponseEntity.ok().headers(headers).body(userResponses);
     }
 
@@ -90,7 +88,13 @@ public class UserController {
 
         MeResponseDTO userInfoResponse = new MeResponseDTO();
         userInfoResponse.setUsername(claims.getSubject());
-        userInfoResponse.setRoles((List<String>) claims.get("roles"));
+
+        // Safe conversion of the roles claim
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<String> roles = objectMapper.convertValue(claims.get("roles"), new TypeReference<List<String>>() {
+        });
+        userInfoResponse.setRoles(roles);
+
         userInfoResponse.setIssuedAt(claims.getIssuedAt());
         userInfoResponse.setExpiresAt(claims.getExpiration());
 
