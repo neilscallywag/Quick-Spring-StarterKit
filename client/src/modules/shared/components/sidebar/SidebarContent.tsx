@@ -47,7 +47,13 @@ export const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
       h="full"
       {...rest}
     >
-      <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
+      <Flex
+        h="20"
+        mb="4"
+        alignItems="center"
+        mx="8"
+        justifyContent="space-between"
+      >
         <Text
           fontSize="4xl"
           fontFamily="monospace"

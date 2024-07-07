@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   Box,
-  Button,
   Center,
   Flex,
   FormControl,
@@ -14,6 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { LocalLoginRequestDTO } from "src/types/auth/user";
 
+import PrimaryButton from "../../../modules/shared/components/buttons/PrimaryButton";
 import { useAuth } from "../../auth/AuthContext";
 
 const LoginPage = () => {
@@ -75,17 +75,16 @@ const LoginPage = () => {
                   onChange={(event) => setPassword(event.target.value)}
                 />
               </FormControl>
-              <Button
+              <PrimaryButton
                 type="submit"
-                w={{ base: "full", sm: "80%" }}
+                w={{ base: "full", sm: "100%" }}
                 size="lg"
-                colorScheme="blue"
                 isLoading={isLoading}
               >
                 <Center>
                   <Text>Sign in</Text>
                 </Center>
-              </Button>
+              </PrimaryButton>
             </Stack>
           </form>
         </Box>

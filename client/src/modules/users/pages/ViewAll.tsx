@@ -25,6 +25,7 @@ import {
   MRT_SortingState,
 } from "mantine-react-table";
 
+import PrimaryButton from "../../../modules/shared/components/buttons/PrimaryButton";
 import { UserTableType } from "../../../types/auth/user";
 import { api } from "../../api";
 import UserTable from "../components/table/UserTable";
@@ -105,7 +106,7 @@ const ViewUser = () => {
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
 
   return (
-    <Box p={4}>
+    <Box mt={0} p={1}>
       <Helmet>
         <title>User Table</title>
         <meta name="description" content="User Table" />
@@ -114,17 +115,9 @@ const ViewUser = () => {
         <Heading as="h3" size="lg">
           Users
         </Heading>
-        <Button
-          as="a"
-          href="/users/create"
-          leftIcon={<CgAddR />}
-          color="white"
-          bg="#1A1E43"
-          border={"none"}
-          _hover={{ bg: "#282e69", color: "white" }}
-        >
+        <PrimaryButton href="/users/create" leftIcon={<CgAddR />}>
           Enroll new user
-        </Button>
+        </PrimaryButton>
       </Flex>
       <UserTable
         data={fetchedUsers}

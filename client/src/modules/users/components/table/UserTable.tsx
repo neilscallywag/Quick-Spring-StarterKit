@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { FaPencilAlt } from "react-icons/fa";
 import { DeleteIcon, ViewIcon } from "@chakra-ui/icons";
-import { Box, HStack, IconButton, Tooltip } from "@chakra-ui/react";
+import { Box, HStack, Tooltip } from "@chakra-ui/react";
 import { ActionIcon } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import {
@@ -11,6 +11,8 @@ import {
   useMantineReactTable,
 } from "mantine-react-table";
 import { UserTableType } from "src/types/auth/user";
+
+import PrimaryIconButton from "../../../../modules/shared/components/buttons/PrimaryIconButton";
 
 interface UserTableProps {
   data: UserTableType[];
@@ -77,30 +79,25 @@ const UserTable: React.FC<UserTableProps> = ({
         header: "Actions",
         Cell: ({ row }) => (
           <HStack>
-            <Tooltip hasArrow label="Edit User" bg="gray.300" color="black">
-              <IconButton
-                aria-label="EditUser"
-                as="a"
-                icon={<FaPencilAlt />}
-                href={`/users/view/${row.original.id}/edit/`}
-              />
-            </Tooltip>
-            <Tooltip hasArrow label="View User" bg="#1A1E43">
-              <IconButton
-                aria-label="ViewUser"
-                as="a"
-                icon={<ViewIcon />}
-                href={`/users/view/${row.original.id}`}
-              />
-            </Tooltip>
-            <Tooltip hasArrow label="Delete User" bg="red.600">
-              <IconButton
-                aria-label="Delete"
-                icon={<DeleteIcon />}
-                onClick={() => handleDelete(row)}
-                colorScheme="red"
-              />
-            </Tooltip>
+            <PrimaryIconButton
+              aria-label="EditUser"
+              tooltipLabel="Edit User"
+              icon={<FaPencilAlt />}
+              href={`/users/view/${row.original.id}/edit/`}
+            />
+            <PrimaryIconButton
+              aria-label="ViewUser"
+              tooltipLabel="View User"
+              icon={<ViewIcon />}
+              href={`/users/view/${row.original.id}`}
+            />
+            <PrimaryIconButton
+              aria-label="Delete"
+              tooltipLabel="Delete User"
+              icon={<DeleteIcon />}
+              onClick={() => handleDelete(row)}
+              colorScheme="red"
+            />
           </HStack>
         ),
       },
