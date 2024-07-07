@@ -19,6 +19,9 @@ interface AuthContextType {
   getUserData: () => Promise<void>;
 }
 
+// Custom event name for invalid token
+const INVALID_TOKEN_EVENT = import.meta.env.VITE_INVALID_TOKEN_EVENT;
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -51,9 +54,9 @@ const useProvideAuth = (): AuthContextType => {
       signOut();
     };
 
-    window.addEventListener("invalid-token-detected", handleInvalidToken);
+    window.addEventListener(INVALID_TOKEN_EVENT, handleInvalidToken);
     return () => {
-      window.removeEventListener("invalid-token-detected", handleInvalidToken);
+      window.removeEventListener(INVALID_TOKEN_EVENT, handleInvalidToken);
     };
   }, [isAuthenticated]);
 

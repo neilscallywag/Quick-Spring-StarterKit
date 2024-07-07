@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 const STORAGE_KEY = import.meta.env.VITE_STORAGE_KEY;
+const STORAGE_NAME = import.meta.env.VITE_STORAGE_NAME;
 
 const encryptedStorage = new EncryptStorage(STORAGE_KEY, {
   storageType: "sessionStorage",
@@ -56,7 +57,7 @@ const useAuthStore = create<AuthStateType>()(
       },
     }),
     {
-      name: "auth-storage",
+      name: STORAGE_NAME,
       storage: createJSONStorage(() => customSessionStorage),
     },
   ),

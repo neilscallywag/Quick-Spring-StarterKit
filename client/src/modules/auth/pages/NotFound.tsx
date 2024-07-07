@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { Box, Flex, Heading, Text } from "@chakra-ui/react";
+
 import PrimaryButton from "../../../modules/shared/components/buttons/PrimaryButton";
 
 const NotFound = () => {
@@ -34,9 +35,7 @@ const NotFound = () => {
           The page you&apos;re looking for does not seem to exist
         </Text>
 
-        <PrimaryButton href="/">
-          Go to Home
-        </PrimaryButton>
+        <PrimaryButton href="/">Go to Home</PrimaryButton>
       </Flex>
     </Box>
   );

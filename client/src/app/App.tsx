@@ -19,16 +19,16 @@ const LoginPage = lazy(() => import("../modules/auth/pages/Login"));
 const ViewAllPage = lazy(() => import("../modules/users/pages/ViewAll"));
 const ViewUserPage = lazy(() => import("../modules/users/pages/ViewUser"));
 
+const ACCESS_TOKEN_COOKIE = import.meta.env.VITE_AUTH_TOKEN_KEY;
+const STORAGE_NAME = import.meta.env.VITE_STORAGE_NAME;
+
 const App = () => {
   const { isAuthenticated } = useAuth();
   useEffect(() => {
-    const authTokenCookie = Cookies.get("auth_token");
+    const authTokenCookie = Cookies.get(ACCESS_TOKEN_COOKIE);
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (
-        (event.key === "auth-storage" && !event.newValue) ||
-        !authTokenCookie
-      ) {
+      if (!authTokenCookie || (event.key === STORAGE_NAME && !event.newValue)) {
         useAuthStore.getState().logout();
       }
     };

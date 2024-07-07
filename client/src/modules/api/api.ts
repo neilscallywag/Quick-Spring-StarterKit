@@ -3,11 +3,13 @@ import { LocalLoginRequestDTO, UserInfoResponse } from "src/types/auth/user";
 
 // Base URL for the API
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Custom event name for invalid token
+const INVALID_TOKEN_EVENT = import.meta.env.VITE_INVALID_TOKEN_EVENT;
 
 // Create an Axios instance
 export const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 300000,
+  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT, 10),
   headers: {
     "Content-Type": "application/json",
   },
@@ -17,7 +19,6 @@ export const api: AxiosInstance = axios.create({
 // Response interceptor to check for specific 401 error
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    // Successful response, pass it through
     return response;
   },
   (error) => {
@@ -25,11 +26,11 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       error.response?.data?.error === "Invalid Token"
     ) {
-      // Here you would trigger the logout
-      window.dispatchEvent(new CustomEvent("invalid-token-detected"));
+      // trigger the logout
+      window.dispatchEvent(new CustomEvent(INVALID_TOKEN_EVENT));
     }
     // Always reject the error for downstream catch blocks to handle
-    return Promise.reject(error);
+    return Promise.reject(new Error(error.message));
   },
 );
 
