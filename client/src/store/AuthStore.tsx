@@ -21,8 +21,8 @@ const customSessionStorage: ZustandStorageType = {
       try {
         encryptedStorage.setItem(key, value);
         resolve();
-      } catch (error) {
-        reject(error);
+      } catch (error: any) {
+        reject(new Error(error.message));
       }
     });
   },
@@ -31,8 +31,8 @@ const customSessionStorage: ZustandStorageType = {
       try {
         encryptedStorage.removeItem(key);
         resolve();
-      } catch (error) {
-        reject(error);
+      } catch (error: any) {
+        reject(new Error(error.message));
       }
     });
   },
