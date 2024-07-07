@@ -3,7 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 
 import { useAuth } from "../../modules/auth";
 import Loader from "../../modules/shared/components/loader/Loader";
-import SidebarWithHeader from "../../modules/shared/components/sidebar/Sidebar";
+import SidebarWithHeader from "../../modules/shared/components/sidebar/SideBar";
 
 const PrivateRoute: React.FC = () => {
   const { isAuthenticated } = useAuth();

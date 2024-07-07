@@ -1,9 +1,10 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { LocalLoginRequestDTO, UserInfoResponse } from "src/types/auth/user";
-// Additional imports may be required depending on your logout implementation
 
+// Base URL for the API
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// Create an Axios instance
 export const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 300000,
@@ -24,10 +25,7 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       error.response?.data?.error === "Invalid Token"
     ) {
-      /*
-       * Here you would trigger the logout
-       * For example, emit a custom event that your application listens for
-       */
+      // Here you would trigger the logout
       window.dispatchEvent(new CustomEvent("invalid-token-detected"));
     }
     // Always reject the error for downstream catch blocks to handle
@@ -35,6 +33,7 @@ api.interceptors.response.use(
   },
 );
 
+// Utility function to handle API responses
 export async function handleResponse<T>(
   response: AxiosResponse<T>,
 ): Promise<T> {
@@ -44,13 +43,14 @@ export async function handleResponse<T>(
   throw new Error(`HTTP error! Status: ${response.status}`);
 }
 
+// Auth API Calls
 export const login = async (data: LocalLoginRequestDTO): Promise<string> => {
   const response = await api.post<string>("users/login", data);
   return response.data;
 };
 
 export const getUserData = async (): Promise<UserInfoResponse> => {
-  const response = await api.post<UserInfoResponse>("/users/me"); // Adjust endpoint if needed
+  const response = await api.post<UserInfoResponse>("/users/me");
   return response.data;
 };
 
