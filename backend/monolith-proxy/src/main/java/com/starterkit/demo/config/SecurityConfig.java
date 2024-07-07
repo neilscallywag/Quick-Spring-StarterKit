@@ -78,10 +78,14 @@ public class SecurityConfig {
                                 .requestMatchers("/swagger-ui/**").permitAll();
                     }
 
+                    // RBAC 
+                    
                     authorizeHttpRequest
                             .requestMatchers(HttpMethod.GET, "/api/users/me")
                             .hasAnyAuthority(ROLE_USER.name(), ROLE_OFFICER.name(), ROLE_MANAGER.name())
                             .requestMatchers(HttpMethod.GET, "/api/users/{id}")
+                            .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
+                            .requestMatchers(HttpMethod.GET, "/api/users")
                             .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
                             .requestMatchers(HttpMethod.POST, "/api/users").hasAuthority(ROLE_MANAGER.name())
                             .requestMatchers(HttpMethod.PUT, "/api/users/{id}")

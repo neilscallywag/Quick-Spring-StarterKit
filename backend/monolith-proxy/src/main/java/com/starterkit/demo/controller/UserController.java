@@ -50,9 +50,10 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
         User user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+        UserResponseDTO returnUser = UserResponseDTO.convertToUserResponseDTO(user);
+        return ResponseEntity.ok(returnUser);
     }
 
     @PostMapping("/register")

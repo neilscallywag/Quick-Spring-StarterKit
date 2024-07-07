@@ -3,14 +3,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
-  Button,
-  chakra,
   Divider,
   Flex,
   FormControl,
   FormLabel,
   Heading,
-  HStack,
   Input,
   useToast,
   VStack,
@@ -25,15 +22,12 @@ const ViewUserPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [userDetails, setUserDetails] = useState<any>(null);
-  const [pointsAccounts, setPointsAccounts] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchUserAndPoints = async () => {
+    const fetchUserDetails = async () => {
       try {
-        const userResponse = await api.get(`/api/v1/users/${userid}`);
+        const userResponse = await api.get(`users/${userid}`);
         setUserDetails(userResponse.data);
-        const pointsResponse = await api.get(`/api/v1/users/${userid}/points`);
-        setPointsAccounts(pointsResponse.data.data.pointAccount || []);
       } catch (error: any) {
         // Handling the case where the user ID is not found
         if (error.response && error.response.status === 404) {
@@ -59,12 +53,8 @@ const ViewUserPage = () => {
       }
     };
 
-    fetchUserAndPoints();
-  }, [userid, toast, navigate]); // Add navigate to the dependency array
-
-  const handleEditPoints = (pointsid: string) => {
-    navigate(`/users/view/${userid}/points/${pointsid}/edit`);
-  };
+    fetchUserDetails();
+  }, [userid, toast, navigate]);
 
   if (!userDetails) {
     return <Loader></Loader>;
@@ -82,25 +72,15 @@ const ViewUserPage = () => {
       >
         <VStack spacing={4} align="flex-start">
           <Heading as="h1" size="xl">
-            {userDetails.firstName} {userDetails.lastName}
+            {userDetails.name}
           </Heading>
           <Divider />
           <FormControl isReadOnly>
-            <FormLabel htmlFor="first-name">First Name</FormLabel>
+            <FormLabel htmlFor="username">Username</FormLabel>
             <Input
-              id="first-name"
+              id="username"
               type="text"
-              value={userDetails.firstName}
-              isReadOnly
-              isDisabled
-            />
-          </FormControl>
-          <FormControl isReadOnly>
-            <FormLabel htmlFor="last-name">Last Name</FormLabel>
-            <Input
-              id="last-name"
-              type="text"
-              value={userDetails.lastName}
+              value={userDetails.username}
               isReadOnly
               isDisabled
             />
@@ -116,51 +96,35 @@ const ViewUserPage = () => {
             />
           </FormControl>
           <FormControl isReadOnly>
-            <FormLabel htmlFor="role">Role</FormLabel>
+            <FormLabel htmlFor="phoneNumber">Phone Number</FormLabel>
             <Input
-              id="role"
+              id="phoneNumber"
               type="text"
-              value={userDetails.role}
+              value={userDetails.phoneNumber}
               isReadOnly
               isDisabled
             />
           </FormControl>
-          <Heading as="h2" size="lg">
-            Points Accounts
-          </Heading>
-          <Divider />
-          {pointsAccounts.length === 0 ? (
-            <chakra.span>No points accounts available</chakra.span>
-          ) : (
-            pointsAccounts.map((account, index) => (
-              <Box key={index} w="full">
-                <HStack justify="space-between" align="center" w="full">
-                  <VStack align="flex-start">
-                    <FormControl isReadOnly>
-                      <FormLabel htmlFor={`account-bank-${index}`}>
-                        {account.bank} - {account.pointsId}
-                      </FormLabel>
-                      <Input
-                        id={`account-bank-${index}`}
-                        type="text"
-                        value={account.points}
-                        isReadOnly
-                        isDisabled
-                      />
-                    </FormControl>
-                  </VStack>
-                  <Button
-                    size="sm"
-                    bg="branding.100"
-                    onClick={() => handleEditPoints(account.pointsId)}
-                    _hover={{ bg: "branding.200" }}
-                  >
-                    Edit
-                  </Button>
-                </HStack>
-              </Box>
-            ))
-          )}
+          <FormControl isReadOnly>
+            <FormLabel htmlFor="dateOfBirth">Date of Birth</FormLabel>
+            <Input
+              id="dateOfBirth"
+              type="text"
+              value={userDetails.dateOfBirth}
+              isReadOnly
+              isDisabled
+            />
+          </FormControl>
+          <FormControl isReadOnly>
+            <FormLabel htmlFor="roles">Roles</FormLabel>
+            <Input
+              id="roles"
+              type="text"
+              value={userDetails.roles.map((role: any) => role.name).join(", ")}
+              isReadOnly
+              isDisabled
+            />
+          </FormControl>
         </VStack>
       </Box>
     </Flex>
