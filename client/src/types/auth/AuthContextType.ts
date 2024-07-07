@@ -1,4 +1,4 @@
-import { UserData } from "~types/data";
+import { UserData } from "../data";
 
 export type AuthContextType = {
   isAuthenticated: boolean;

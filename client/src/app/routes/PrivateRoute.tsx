@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
-import Loader from "~components/loader/Loader";
-import SidebarWithHeader from "~components/sidebar/Sidebar";
-
-import { useAuth } from "~features/auth";
+import { useAuth } from "../../modules/auth";
+import Loader from "../../modules/shared/components/loader/Loader";
+import SidebarWithHeader from "../../modules/shared/components/sidebar/Sidebar";
 
 const PrivateRoute: React.FC = () => {
   const { isAuthenticated } = useAuth();

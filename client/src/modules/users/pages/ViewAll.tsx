@@ -24,13 +24,11 @@ import {
   MRT_Row,
   MRT_SortingState,
 } from "mantine-react-table";
-import { UserTableType } from "src/types/auth/user";
 
-import UserTable from "~components/table/UserTable";
-
-import { api } from "~features/api";
-
-import useGetUsers from "../../hooks/useGetUsers";
+import { UserTableType } from "../../../types/auth/user";
+import { api } from "../../api";
+import UserTable from "../components/table/UserTable";
+import useGetUsers from "../hooks/useGetUsers";
 
 const ViewUser = () => {
   const toast = useToast();

@@ -5,12 +5,11 @@ import { useToast } from "@chakra-ui/react";
 
 import useAuthStore from "../../store/AuthStore";
 import { LocalLoginRequestDTO, UserInfoResponse } from "../../types/auth/user";
-
 import {
   getUserData as apiGetUserData,
   login as apiLogin,
   logout as apiLogout,
-} from "~api";
+} from "../api";
 
 interface AuthContextType {
   isAuthenticated: boolean;

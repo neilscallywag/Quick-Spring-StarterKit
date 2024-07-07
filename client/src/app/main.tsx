@@ -7,7 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@opengovsg/design-system-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { AuthProvider } from "~features/auth";
+import { AuthProvider } from "../modules/auth";
 
 import App from "./App";
 import customTheme from "./theme";

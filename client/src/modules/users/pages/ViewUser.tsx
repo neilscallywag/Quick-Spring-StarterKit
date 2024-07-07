@@ -13,9 +13,8 @@ import {
   VStack,
 } from "@chakra-ui/react";
 
-import Loader from "~components/loader/Loader";
-
-import { api } from "~features/api";
+import { api } from "../../../modules/api";
+import Loader from "../../../modules/shared/components/loader/Loader";
 
 const ViewUserPage = () => {
   const { userid } = useParams();

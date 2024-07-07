@@ -3,22 +3,21 @@ import { Route, Routes } from "react-router-dom";
 import { Box, Flex } from "@chakra-ui/react";
 import Cookies from "js-cookie";
 
-import { useAuth } from "~features/auth";
+import { useAuth } from "../modules/auth";
+import useAuthStore from "../store/AuthStore";
 
-import useAuthStore from "./store/AuthStore";
-
-const Loader = lazy(() => import("~components/loader/Loader"));
-const NotFound = lazy(() => import("~pages/notfound/NotFound"));
-const Footer = lazy(() => import("~components/footer/Footer"));
+const Loader = lazy(() => import("../modules/shared/components/loader/Loader"));
+const NotFound = lazy(() => import("../modules/auth/pages/NotFound"));
+const Footer = lazy(() => import("../modules/shared/components/footer/Footer"));
 
 const PublicRoute = lazy(() => import("./routes/PublicRoute"));
 const PrivateRoute = lazy(() => import("./routes/PrivateRoute"));
 
 // Public Page
-const LoginPage = lazy(() => import("~pages/auth/Login"));
+const LoginPage = lazy(() => import("../modules/auth/pages/Login"));
 // Private Page
-const ViewAllPage = lazy(() => import("~pages/users/ViewAll"));
-const ViewUserPage = lazy(() => import("~pages/users/ViewUser"));
+const ViewAllPage = lazy(() => import("../modules/users/pages/ViewAll"));
+const ViewUserPage = lazy(() => import("../modules/users/pages/ViewUser"));
 
 const App = () => {
   const { isAuthenticated } = useAuth();

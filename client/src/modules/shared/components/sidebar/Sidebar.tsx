@@ -25,7 +25,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 
-import { useAuth } from "~features/auth";
+import { useAuth } from "../../../auth/AuthContext";
 
 /*
  * interface LinkItemProps {

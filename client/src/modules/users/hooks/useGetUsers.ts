@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Params, UserApiResponse } from "src/types/auth/user";
 
-import { api } from "~features/api";
+import { api } from "../../../modules/api";
+import { Params, UserApiResponse } from "../../../types/auth/user";
 
 const useGetUsers = ({ columnFilters, sorting, pagination }: Params) => {
   const [lastQueryData, setLastQueryData] = useState<

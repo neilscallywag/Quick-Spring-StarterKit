@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { LocalLoginRequestDTO } from "src/types/auth/user";
 
-import { useAuth } from "~features/auth";
+import { useAuth } from "../../auth/AuthContext";
 
 const LoginPage = () => {
   const { login } = useAuth();

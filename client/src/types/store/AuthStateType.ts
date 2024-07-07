@@ -1,4 +1,4 @@
-import { UserInfoResponse } from "~shared/types/auth/user";
+import { UserInfoResponse } from "../auth/user";
 
 export type AuthStateType = {
   isAuthenticated: boolean;
