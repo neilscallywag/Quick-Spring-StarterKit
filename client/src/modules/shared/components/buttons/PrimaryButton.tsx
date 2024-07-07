@@ -6,7 +6,7 @@ interface PrimaryButtonProps extends ChakraButtonProps {
   rightIcon?: ReactElement;
   href?: string;
   size?: "small" | "medium" | "large";
-  isFullWidth?: boolean; // Marked as optional
+  isFullWidth?: boolean; 
 }
 
 const PrimaryButton = forwardRef<HTMLButtonElement, PrimaryButtonProps>(
