@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
-import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text } from "@chakra-ui/react";
+import PrimaryButton from "../../../modules/shared/components/buttons/PrimaryButton";
 
 const NotFound = () => {
   return (
@@ -20,21 +21,22 @@ const NotFound = () => {
           display="inline-block"
           as="h2"
           size="2xl"
-          bg="lightBlue.500"
+          bg="branding.100"
           backgroundClip="text"
+          mb={-2}
         >
           404
         </Heading>
-        <Text fontSize="xl" fontWeight="bold" color="white" mt={3} mb={2}>
+        <Text fontSize="xl" fontWeight="bold" color="white" mt={0} mb={0}>
           Page Not Found
         </Text>
         <Text color={"gray.600"} mb={6}>
           The page you&apos;re looking for does not seem to exist
         </Text>
 
-        <Button as="a" href="/" variant="solid">
-          Go to home
-        </Button>
+        <PrimaryButton href="/">
+          Go to Home
+        </PrimaryButton>
       </Flex>
     </Box>
   );
