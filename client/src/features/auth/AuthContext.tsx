@@ -3,11 +3,8 @@ import React, { createContext, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@chakra-ui/react";
 
-import useAuthStore from "~shared/store/AuthStore";
-import {
-  LocalLoginRequestDTO,
-  UserInfoResponse,
-} from "~shared/types/auth/user";
+import useAuthStore from "../../store/AuthStore";
+import { LocalLoginRequestDTO, UserInfoResponse } from "../../types/auth/user";
 
 import {
   getUserData as apiGetUserData,

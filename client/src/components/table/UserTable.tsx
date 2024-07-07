@@ -10,8 +10,7 @@ import {
   MRT_Row,
   useMantineReactTable,
 } from "mantine-react-table";
-
-import { UserTableType } from "~shared/types/auth/user";
+import { UserTableType } from "src/types/auth/user";
 
 interface UserTableProps {
   data: UserTableType[];

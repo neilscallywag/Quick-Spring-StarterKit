@@ -12,8 +12,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-
-import { LocalLoginRequestDTO } from "~shared/types/auth/user";
+import { LocalLoginRequestDTO } from "src/types/auth/user";
 
 import { useAuth } from "~features/auth";
 

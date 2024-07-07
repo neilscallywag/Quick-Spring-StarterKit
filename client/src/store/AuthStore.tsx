@@ -1,8 +1,7 @@
 import { EncryptStorage } from "encrypt-storage";
+import { AuthStateType, ZustandStorageType } from "src/types/store";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-
-import { AuthStateType, ZustandStorageType } from "~types/store";
 
 const STORAGE_KEY = import.meta.env.VITE_STORAGE_KEY;
 

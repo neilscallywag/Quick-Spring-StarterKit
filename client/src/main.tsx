@@ -7,11 +7,10 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@opengovsg/design-system-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import customTheme from "~shared/theme";
-
 import { AuthProvider } from "~features/auth";
 
 import App from "./App";
+import customTheme from "./theme";
 
 const helmetContext = {};
 

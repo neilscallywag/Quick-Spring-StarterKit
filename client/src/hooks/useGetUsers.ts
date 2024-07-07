@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-
-import { Params, UserApiResponse } from "~shared/types/auth/user";
+import { Params, UserApiResponse } from "src/types/auth/user";
 
 import { api } from "~features/api";
 

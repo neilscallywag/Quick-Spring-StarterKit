@@ -1,9 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-
-import {
-  LocalLoginRequestDTO,
-  UserInfoResponse,
-} from "~shared/types/auth/user";
+import { LocalLoginRequestDTO, UserInfoResponse } from "src/types/auth/user";
 // Additional imports may be required depending on your logout implementation
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;

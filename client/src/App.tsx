@@ -3,16 +3,16 @@ import { Route, Routes } from "react-router-dom";
 import { Box, Flex } from "@chakra-ui/react";
 import Cookies from "js-cookie";
 
-import useAuthStore from "~shared/store/AuthStore";
-
 import { useAuth } from "~features/auth";
+
+import useAuthStore from "./store/AuthStore";
 
 const Loader = lazy(() => import("~components/loader/Loader"));
 const NotFound = lazy(() => import("~pages/notfound/NotFound"));
 const Footer = lazy(() => import("~components/footer/Footer"));
 
-const PublicRoute = lazy(() => import("~shared/routes/PublicRoute"));
-const PrivateRoute = lazy(() => import("~shared/routes/PrivateRoute"));
+const PublicRoute = lazy(() => import("./routes/PublicRoute"));
+const PrivateRoute = lazy(() => import("./routes/PrivateRoute"));
 
 // Public Page
 const LoginPage = lazy(() => import("~pages/auth/Login"));
@@ -20,9 +20,6 @@ const LoginPage = lazy(() => import("~pages/auth/Login"));
 const ViewAllPage = lazy(() => import("~pages/users/ViewAll"));
 const ViewUserPage = lazy(() => import("~pages/users/ViewUser"));
 
-const EditUserPage = lazy(() => import("~pages/users/EditUser"));
-
-const CreateUserPage = lazy(() => import("~pages/users/CreateUser"));
 const App = () => {
   const { isAuthenticated } = useAuth();
   useEffect(() => {
@@ -64,15 +61,6 @@ const App = () => {
               </Route>
               <Route element={<PrivateRoute />}>
                 <Route path="/users/view/:userid" element={<ViewUserPage />} />
-              </Route>
-              <Route element={<PrivateRoute />}>
-                <Route
-                  path="/users/view/:userid/edit"
-                  element={<EditUserPage />}
-                />
-              </Route>
-              <Route element={<PrivateRoute />}>
-                <Route path="/users/create" element={<CreateUserPage />} />
               </Route>
               <Route element={<PrivateRoute />}></Route>
               <Route path="*" element={<NotFound />} />
