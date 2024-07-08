@@ -49,141 +49,202 @@ public class UserService {
             String emailFilter,
             String sortField,
             String sortOrder) {
-        Pageable pageable =
-                PageRequest.of(
-                        page, size, Sort.by(Sort.Direction.fromString(sortOrder), sortField));
-        if (nameFilter != null && emailFilter != null) {
-            return userRepository.findByNameContainingAndEmailContaining(
-                    nameFilter, emailFilter, pageable);
-        } else if (nameFilter != null) {
-            return userRepository.findByNameContaining(nameFilter, pageable);
-        } else if (emailFilter != null) {
-            return userRepository.findByEmailContaining(emailFilter, pageable);
-        } else {
-            return userRepository.findAll(pageable);
+        try {
+            Pageable pageable =
+                    PageRequest.of(
+                            page, size, Sort.by(Sort.Direction.fromString(sortOrder), sortField));
+            if (nameFilter != null && emailFilter != null) {
+                return userRepository.findByNameContainingAndEmailContaining(
+                        nameFilter, emailFilter, pageable);
+            } else if (nameFilter != null) {
+                return userRepository.findByNameContaining(nameFilter, pageable);
+            } else if (emailFilter != null) {
+                return userRepository.findByEmailContaining(emailFilter, pageable);
+            } else {
+                return userRepository.findAll(pageable);
+            }
+        } catch (Exception e) {
+            log.error("Failed to retrieve users", e);
+            throw new InvalidRequestException("Failed to retrieve users");
         }
     }
 
     public long getTotalCount(String nameFilter, String emailFilter) {
-        if (nameFilter != null && emailFilter != null) {
-            return userRepository.countByNameContainingAndEmailContaining(nameFilter, emailFilter);
-        } else if (nameFilter != null) {
-            return userRepository.countByNameContaining(nameFilter);
-        } else if (emailFilter != null) {
-            return userRepository.countByEmailContaining(emailFilter);
-        } else {
-            return userRepository.count();
+        try {
+            if (nameFilter != null && emailFilter != null) {
+                return userRepository.countByNameContainingAndEmailContaining(
+                        nameFilter, emailFilter);
+            } else if (nameFilter != null) {
+                return userRepository.countByNameContaining(nameFilter);
+            } else if (emailFilter != null) {
+                return userRepository.countByEmailContaining(emailFilter);
+            } else {
+                return userRepository.count();
+            }
+        } catch (Exception e) {
+            log.error("Failed to get user count", e);
+            throw new InvalidRequestException("Failed to get user count");
         }
     }
 
     public User getUserById(UUID id) {
-        return userRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        try {
+            return userRepository
+                    .findById(id)
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("User not found with id: " + id));
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to get user by id", e);
+            throw new InvalidRequestException("Failed to get user by id");
+        }
     }
 
     public User getUserByUsername(String username) {
-        return userRepository
-                .findByUsername(username)
-                .orElseThrow(
-                        () ->
-                                new ResourceNotFoundException(
-                                        "User not found with username: " + username));
+        try {
+            return userRepository
+                    .findByUsername(username)
+                    .orElseThrow(
+                            () ->
+                                    new ResourceNotFoundException(
+                                            "User not found with username: " + username));
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to get user by username", e);
+            throw new InvalidRequestException("Failed to get user by username");
+        }
     }
 
     public UserResponseDTO createUser(NewUserRequestDTO userRequestDTO) {
-        if (userRepository.findByUsername(userRequestDTO.getUsername()).isPresent()) {
-            throw new InvalidRequestException("Username is already taken.");
+        try {
+            if (userRepository.findByUsername(userRequestDTO.getUsername()).isPresent()) {
+                throw new InvalidRequestException("Username is already taken.");
+            }
+
+            userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+            User user = NewUserRequestDTO.toUser(userRequestDTO);
+
+            Role defaultRole = roleService.findRoleByName(EnumRole.ROLE_USER);
+
+            user.getRoles().add(defaultRole);
+
+            User savedUser = userRepository.save(user);
+
+            return convertToUserResponseDTO(savedUser);
+        } catch (InvalidRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to create user", e);
+            throw new InvalidRequestException("Failed to create user");
         }
-
-        userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        User user = NewUserRequestDTO.toUser(userRequestDTO);
-
-        Role defaultRole = roleService.findRoleByName(EnumRole.ROLE_USER);
-
-        user.getRoles().add(defaultRole);
-
-        User savedUser = userRepository.save(user);
-
-        return convertToUserResponseDTO(savedUser);
     }
 
     private UserResponseDTO convertToUserResponseDTO(User user) {
-        UserResponseDTO response = new UserResponseDTO();
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setName(user.getName());
-        response.setEmail(user.getEmail());
-        response.setPhoneNumber(user.getPhoneNumber());
-        response.setDateOfBirth(user.getDateOfBirth());
+        try {
+            UserResponseDTO response = new UserResponseDTO();
+            response.setId(user.getId());
+            response.setUsername(user.getUsername());
+            response.setName(user.getName());
+            response.setEmail(user.getEmail());
+            response.setPhoneNumber(user.getPhoneNumber());
+            response.setDateOfBirth(user.getDateOfBirth());
 
-        Set<RoleDTO> roleDTOs =
-                user.getRoles().stream()
-                        .map(
-                                role -> {
-                                    RoleDTO roleDTO = new RoleDTO();
-                                    roleDTO.setId(role.getId());
-                                    roleDTO.setName(role.getName());
-                                    return roleDTO;
-                                })
-                        .collect(Collectors.toSet());
-        response.setRoles(roleDTOs);
+            Set<RoleDTO> roleDTOs =
+                    user.getRoles().stream()
+                            .map(
+                                    role -> {
+                                        RoleDTO roleDTO = new RoleDTO();
+                                        roleDTO.setId(role.getId());
+                                        roleDTO.setName(role.getName());
+                                        return roleDTO;
+                                    })
+                            .collect(Collectors.toSet());
+            response.setRoles(roleDTOs);
 
-        response.setProvider(user.getProvider());
-        response.setImageUrl(user.getImageUrl());
-        response.setEmailVerified(user.getEmailVerified());
-        response.setAuthProvider(user.getAuthProvider());
+            response.setProvider(user.getProvider());
+            response.setImageUrl(user.getImageUrl());
+            response.setEmailVerified(user.getEmailVerified());
+            response.setAuthProvider(user.getAuthProvider());
 
-        return response;
+            return response;
+        } catch (Exception e) {
+            log.error("Failed to convert user to UserResponseDTO", e);
+            throw new InvalidRequestException("Failed to convert user to response DTO");
+        }
     }
 
     public User updateUser(UUID id, User userDetails) {
-        User user = getUserById(id);
-        user.setUsername(userDetails.getUsername());
-        user.setEmail(userDetails.getEmail());
-        user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
-        user.setName(userDetails.getName());
-        user.setPhoneNumber(userDetails.getPhoneNumber());
-        user.setDateOfBirth(userDetails.getDateOfBirth());
-        user.setRoles(userDetails.getRoles());
-        user.setProvider(userDetails.getProvider());
-        user.setProviderId(userDetails.getProviderId());
-        user.setImageUrl(userDetails.getImageUrl());
-        user.setEmailVerified(userDetails.getEmailVerified());
-        user.setAuthProvider(userDetails.getAuthProvider());
-        return userRepository.save(user);
+        try {
+            User user = getUserById(id);
+            user.setUsername(userDetails.getUsername());
+            user.setEmail(userDetails.getEmail());
+            user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+            user.setName(userDetails.getName());
+            user.setPhoneNumber(userDetails.getPhoneNumber());
+            user.setDateOfBirth(userDetails.getDateOfBirth());
+            user.setRoles(userDetails.getRoles());
+            user.setProvider(userDetails.getProvider());
+            user.setProviderId(userDetails.getProviderId());
+            user.setImageUrl(userDetails.getImageUrl());
+            user.setEmailVerified(userDetails.getEmailVerified());
+            user.setAuthProvider(userDetails.getAuthProvider());
+            return userRepository.save(user);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to update user", e);
+            throw new InvalidRequestException("Failed to update user");
+        }
     }
 
     public void deleteUser(UUID id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User not found with id: " + id);
+        try {
+            User user = getUserById(id);
+            user.getRoles().clear();
+            userRepository.save(user);
+            userRepository.delete(user);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to delete user", e);
+            throw new InvalidRequestException("Failed to delete user");
         }
-        userRepository.deleteById(id);
     }
 
     public String login(String username, String password, HttpServletResponse response) {
-        User user =
-                userRepository
-                        .findByUsername(username)
-                        .orElseThrow(
-                                () -> new AuthenticationException("Invalid username or password"));
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            Map<String, Object> claims =
-                    Map.of(
-                            "roles",
-                            user.getRoles().stream()
-                                    .map(role -> role.getName().name())
-                                    .collect(Collectors.toList()));
-            String token = jwtUtil.generateToken(claims, user.getUsername());
-            Cookie cookie = new Cookie("JWT_TOKEN", token);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(jwtUtil.getExpiration().intValue());
-            response.addCookie(cookie);
-            return token;
-        } else {
-            throw new AuthenticationException("Invalid username or password");
+        try {
+            User user =
+                    userRepository
+                            .findByUsername(username)
+                            .orElseThrow(
+                                    () ->
+                                            new AuthenticationException(
+                                                    "Invalid username or password"));
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                Map<String, Object> claims =
+                        Map.of(
+                                "roles",
+                                user.getRoles().stream()
+                                        .map(role -> role.getName().name())
+                                        .collect(Collectors.toList()));
+                String token = jwtUtil.generateToken(claims, user.getUsername());
+                Cookie cookie = new Cookie("JWT_TOKEN", token);
+                cookie.setHttpOnly(true);
+                cookie.setSecure(true);
+                cookie.setPath("/");
+                cookie.setMaxAge(jwtUtil.getExpiration().intValue());
+                response.addCookie(cookie);
+                return token;
+            } else {
+                throw new AuthenticationException("Invalid username or password");
+            }
+        } catch (AuthenticationException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to login", e);
+            throw new AuthenticationException("Failed to login");
         }
     }
 
@@ -197,7 +258,7 @@ public class UserService {
             response.addCookie(cookie);
         } catch (Exception e) {
             log.warn("Failed to log out: " + token, e);
-            throw new AuthenticationException("Failed to Logout");
+            throw new AuthenticationException("Failed to logout");
         }
     }
 }

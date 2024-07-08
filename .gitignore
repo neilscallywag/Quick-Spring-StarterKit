@@ -87,3 +87,4 @@ yarn-error.log
 lerna-debug.log
 client/src/modules/shared/components/**/**.stories.tsx
 client/.storybook/**
+backend/logging/.env

@@ -1,5 +1,7 @@
 package com.starterkit.demo.config;
 
+import com.starterkit.demo.config.filter.JwtAuthenticationFilter;
+import com.starterkit.demo.config.filter.LogIdFilter;
 import com.starterkit.demo.service.CustomUserDetailsService;
 import com.starterkit.demo.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,10 +48,12 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final LogIdFilter logIdFilter;
 
-    public SecurityConfig(JwtUtil jwtUtil, CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(JwtUtil jwtUtil, CustomUserDetailsService customUserDetailsService, LogIdFilter logIdFilter) {
         this.jwtUtil = jwtUtil;
         this.customUserDetailsService = customUserDetailsService;
+        this.logIdFilter = logIdFilter;
     }
 
     @Bean
@@ -108,6 +112,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, API_USERS_ID).hasAuthority(ROLE_MANAGER.name())
                             .anyRequest().authenticated();
                 })
+                .addFilterBefore(logIdFilter, AuthorizationFilter.class) // Add LogIdFilter before AuthorizationFilter
                 .addFilterBefore(jwtAuthenticationFilter(), AuthorizationFilter.class);
         return http.build();
     }

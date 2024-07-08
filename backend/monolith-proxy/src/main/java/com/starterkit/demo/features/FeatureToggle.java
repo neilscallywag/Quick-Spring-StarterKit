@@ -9,5 +9,8 @@ public enum FeatureToggle implements Feature {
     ENABLE_PROFILING,
 
     @Label("Send Profiling Data to Prometheus")
-    SEND_PROFILING_DATA_TO_PROMETHEUS;
+    SEND_PROFILING_DATA_TO_PROMETHEUS,
+    
+    @Label("Enable Logging")
+    ENABLE_LOGGING;
 }

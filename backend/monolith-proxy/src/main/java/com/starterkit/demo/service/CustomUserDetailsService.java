@@ -1,18 +1,23 @@
 /* (C)2024 */
 package com.starterkit.demo.service;
 
-import com.starterkit.demo.model.User;
-import com.starterkit.demo.repository.UserRepository;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.starterkit.demo.model.User;
+import com.starterkit.demo.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;

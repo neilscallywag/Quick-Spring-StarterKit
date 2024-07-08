@@ -43,7 +43,7 @@ const ViewUser = () => {
 
   const deleteUser = async (id: string) => {
     try {
-      const response = await api.delete(`/api/users/${id}`);
+      const response = await api.delete(`/users/${id}`);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

@@ -162,12 +162,14 @@ class UserServiceIntegrationTest {
     @Test
     void deleteUser_UserDeletedSuccessfully() {
         UUID userId = UUID.randomUUID();
-        when(userRepository.existsById(userId)).thenReturn(true);
-        doNothing().when(userRepository).deleteById(userId);
+        User user = new User();
+        user.setId(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        doNothing().when(userRepository).delete(user);
 
         userService.deleteUser(userId);
 
-        verify(userRepository, times(1)).deleteById(userId);
+        verify(userRepository, times(1)).delete(user);
     }
 
     @Test

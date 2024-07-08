@@ -47,7 +47,9 @@ public class User {
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(
+            fetch = FetchType.EAGER,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -99,5 +101,10 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = new Date();
+    }
+
+    @PreRemove
+    private void preRemove() {
+        roles.clear();
     }
 }

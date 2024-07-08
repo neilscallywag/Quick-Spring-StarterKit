@@ -1,4 +1,4 @@
-package com.starterkit.demo.config;
+package com.starterkit.demo.config.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starterkit.demo.exception.AuthenticationException;

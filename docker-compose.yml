@@ -19,6 +19,15 @@ services:
       timeout: 10s
       retries: 3
 
+  logging:
+    build: ./backend/logging/
+    env_file:
+      - ./backend/logging/.env
+    ports:
+      - "5001:5001" 
+    depends_on:
+      - app
+
   db:
     image: postgres:13
     environment:
