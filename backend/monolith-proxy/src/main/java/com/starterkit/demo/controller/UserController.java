@@ -1,6 +1,18 @@
 /* (C)2024 */
 package com.starterkit.demo.controller;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.starterkit.demo.dto.*;
 import com.starterkit.demo.exception.*;
@@ -8,19 +20,11 @@ import com.starterkit.demo.model.User;
 import com.starterkit.demo.service.UserService;
 import com.starterkit.demo.util.JwtUtil;
 import com.starterkit.demo.util.PaginationUtil;
+
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 @RestController
 @RequestMapping("/api/users")
@@ -39,17 +43,22 @@ public class UserController {
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "asc") String sortOrder) {
 
-        Page<User> userPage = userService.getAllUsers(page, size, nameFilter, emailFilter, sortField, sortOrder);
+        Page<User> userPage =
+                userService.getAllUsers(page, size, nameFilter, emailFilter, sortField, sortOrder);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(userPage, "/api/users");
-        List<UserResponseDTO> userResponses = userPage.getContent().stream()
-                .map(UserResponseDTO::convertToUserResponseDTO)
-                .collect(Collectors.toList());
+        List<UserResponseDTO> userResponses =
+                userPage.getContent().stream()
+                        .map(UserResponseDTO::convertToUserResponseDTO)
+                        .collect(Collectors.toList());
         return ResponseEntity.ok().headers(headers).body(userResponses);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
         User user = userService.getUserById(id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with id " + id);
+        }
         UserResponseDTO returnUser = UserResponseDTO.convertToUserResponseDTO(user);
         return ResponseEntity.ok(returnUser);
     }
@@ -57,14 +66,18 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody NewUserRequestDTO user) {
         validateUser(user);
-        return ResponseEntity.ok(userService.createUser(user));
+        return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(
             @PathVariable UUID id, @Valid @RequestBody User userDetails) {
         validateUser(userDetails);
-        return ResponseEntity.ok(userService.updateUser(id, userDetails));
+        User updatedUser = userService.updateUser(id, userDetails);
+        if (updatedUser == null) {
+            throw new ResourceNotFoundException("User not found with id " + id);
+        }
+        return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/{id}")
@@ -78,12 +91,19 @@ public class UserController {
             @Valid @RequestBody LocalLoginRequestDTO data, HttpServletResponse response) {
         String username = data.getUsername().toLowerCase();
         String password = data.getPassword();
-        return ResponseEntity.ok(userService.login(username, password, response));
+        try {
+            return ResponseEntity.ok(userService.login(username, password, response));
+        } catch (AuthenticationException ex) {
+            throw new InvalidRequestException("Invalid username or password");
+        }
     }
 
     @PostMapping("/me")
     public ResponseEntity<MeResponseDTO> getMe(
             @CookieValue(name = "JWT_TOKEN", required = false) String token) {
+        if (token == null || token.isBlank()) {
+            throw new InvalidRequestException("Token is missing");
+        }
         Claims claims = jwtUtil.getClaimsFromToken(token);
 
         MeResponseDTO userInfoResponse = new MeResponseDTO();
@@ -91,8 +111,9 @@ public class UserController {
 
         // Safe conversion of the roles claim
         ObjectMapper objectMapper = new ObjectMapper();
-        List<String> roles = objectMapper.convertValue(claims.get("roles"), new TypeReference<List<String>>() {
-        });
+        List<String> roles =
+                objectMapper.convertValue(
+                        claims.get("roles"), new TypeReference<List<String>>() {});
         userInfoResponse.setRoles(roles);
 
         userInfoResponse.setIssuedAt(claims.getIssuedAt());

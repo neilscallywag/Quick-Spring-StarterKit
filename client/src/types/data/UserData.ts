@@ -5,4 +5,6 @@ export interface UserData {
   email: string;
   role: string;
   profile_pic: string;
+  createdAt: string;
+  updatedAt: string;
 }

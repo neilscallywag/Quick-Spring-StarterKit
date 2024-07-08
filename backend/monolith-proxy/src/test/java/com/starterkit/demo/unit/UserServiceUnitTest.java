@@ -1,14 +1,27 @@
+/* (C)2024 */
 package com.starterkit.demo.unit;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.starterkit.demo.dto.NewUserRequestDTO;
 import com.starterkit.demo.dto.UserResponseDTO;
+import com.starterkit.demo.exception.AuthenticationException;
+import com.starterkit.demo.exception.ResourceNotFoundException;
 import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
@@ -16,42 +29,24 @@ import com.starterkit.demo.repository.UserRepository;
 import com.starterkit.demo.service.RoleService;
 import com.starterkit.demo.service.UserService;
 import com.starterkit.demo.util.JwtUtil;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
-import java.util.Optional;
-import java.util.UUID;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class UserServiceUnitTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private JwtUtil jwtUtil;
+    @Mock private JwtUtil jwtUtil;
 
-    @Mock
-    private RoleService roleService;
+    @Mock private RoleService roleService;
 
-    @InjectMocks
-    private UserService userService;
+    @InjectMocks private UserService userService;
 
     @BeforeEach
     public void setup() {
@@ -96,7 +91,8 @@ class UserServiceUnitTest {
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password", "encodedpassword")).thenReturn(true);
-        when(jwtUtil.generateToken(Map.of("roles", List.of("ROLE_USER")), "testuser")).thenReturn("token");
+        when(jwtUtil.generateToken(Map.of("roles", List.of("ROLE_USER")), "testuser"))
+                .thenReturn("token");
 
         HttpServletResponse response = new MockHttpServletResponse();
         String token = userService.login("testuser", "password", response);
@@ -114,15 +110,19 @@ class UserServiceUnitTest {
         HttpServletResponse response = new MockHttpServletResponse();
 
         assertThatThrownBy(() -> userService.login("testuser", "password", response))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(AuthenticationException.class)
                 .hasMessage("Invalid username or password");
     }
 
     @Test
     void deleteUser_ValidId_DeletesUser() {
         UUID userId = UUID.randomUUID();
+        when(userRepository.existsById(userId)).thenReturn(true);
+        doNothing().when(userRepository).deleteById(userId);
+
         userService.deleteUser(userId);
-        verify(userRepository).deleteById(userId);
+
+        verify(userRepository, times(1)).deleteById(userId);
     }
 
     @Test
@@ -142,8 +142,8 @@ class UserServiceUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserById(userId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("User not found");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with id: " + userId);
     }
 
     @Test
@@ -152,8 +152,8 @@ class UserServiceUnitTest {
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserByUsername(username))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("User not found");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with username: " + username);
     }
 
     @Test
@@ -163,7 +163,7 @@ class UserServiceUnitTest {
         existingUser.setId(userId);
         existingUser.setUsername("oldusername");
         existingUser.setPassword("oldpassword");
-        
+
         User updatedDetails = new User();
         updatedDetails.setUsername("newusername");
         updatedDetails.setPassword("newpassword");
@@ -198,7 +198,8 @@ class UserServiceUnitTest {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByNameContaining(anyString(), any(PageRequest.class))).thenReturn(page);
+        when(userRepository.findByNameContaining(anyString(), any(PageRequest.class)))
+                .thenReturn(page);
 
         Page<User> result = userService.getAllUsers(0, 10, "test", null, "id", "asc");
 
@@ -211,7 +212,8 @@ class UserServiceUnitTest {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByEmailContaining(anyString(), any(PageRequest.class))).thenReturn(page);
+        when(userRepository.findByEmailContaining(anyString(), any(PageRequest.class)))
+                .thenReturn(page);
 
         Page<User> result = userService.getAllUsers(0, 10, null, "test@example.com", "id", "asc");
 
@@ -224,7 +226,9 @@ class UserServiceUnitTest {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByNameContainingAndEmailContaining(anyString(), anyString(), any(PageRequest.class))).thenReturn(page);
+        when(userRepository.findByNameContainingAndEmailContaining(
+                        anyString(), anyString(), any(PageRequest.class)))
+                .thenReturn(page);
 
         Page<User> result = userService.getAllUsers(0, 10, "test", "test@example.com", "id", "asc");
 
@@ -252,7 +256,8 @@ class UserServiceUnitTest {
 
     @Test
     void getTotalCount_WithNameAndEmailFilter_ReturnsCount() {
-        when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString())).thenReturn(1L);
+        when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString()))
+                .thenReturn(1L);
 
         long count = userService.getTotalCount("test", "test@example.com");
 

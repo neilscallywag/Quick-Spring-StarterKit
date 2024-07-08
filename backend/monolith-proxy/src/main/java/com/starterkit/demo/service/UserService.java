@@ -1,23 +1,10 @@
 /* (C)2024 */
 package com.starterkit.demo.service;
 
-import com.starterkit.demo.dto.NewUserRequestDTO;
-import com.starterkit.demo.dto.RoleDTO;
-import com.starterkit.demo.dto.UserResponseDTO;
-import com.starterkit.demo.exception.AuthenticationException;
-import com.starterkit.demo.model.EnumRole;
-import com.starterkit.demo.model.Role;
-import com.starterkit.demo.model.User;
-import com.starterkit.demo.repository.UserRepository;
-import com.starterkit.demo.util.JwtUtil;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +13,23 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.starterkit.demo.dto.NewUserRequestDTO;
+import com.starterkit.demo.dto.RoleDTO;
+import com.starterkit.demo.dto.UserResponseDTO;
+import com.starterkit.demo.exception.AuthenticationException;
+import com.starterkit.demo.exception.InvalidRequestException;
+import com.starterkit.demo.exception.ResourceNotFoundException;
+import com.starterkit.demo.model.EnumRole;
+import com.starterkit.demo.model.Role;
+import com.starterkit.demo.model.User;
+import com.starterkit.demo.repository.UserRepository;
+import com.starterkit.demo.util.JwtUtil;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Transactional
@@ -75,16 +79,23 @@ public class UserService {
     public User getUserById(UUID id) {
         return userRepository
                 .findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 
     public User getUserByUsername(String username) {
         return userRepository
                 .findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(
+                        () ->
+                                new ResourceNotFoundException(
+                                        "User not found with username: " + username));
     }
 
     public UserResponseDTO createUser(NewUserRequestDTO userRequestDTO) {
+        if (userRepository.findByUsername(userRequestDTO.getUsername()).isPresent()) {
+            throw new InvalidRequestException("Username is already taken.");
+        }
+
         userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         User user = NewUserRequestDTO.toUser(userRequestDTO);
 
@@ -144,6 +155,9 @@ public class UserService {
     }
 
     public void deleteUser(UUID id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("User not found with id: " + id);
+        }
         userRepository.deleteById(id);
     }
 
@@ -151,7 +165,8 @@ public class UserService {
         User user =
                 userRepository
                         .findByUsername(username)
-                        .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+                        .orElseThrow(
+                                () -> new AuthenticationException("Invalid username or password"));
         if (passwordEncoder.matches(password, user.getPassword())) {
             Map<String, Object> claims =
                     Map.of(
@@ -181,7 +196,7 @@ public class UserService {
             cookie.setMaxAge(0);
             response.addCookie(cookie);
         } catch (Exception e) {
-            log.warn("Failed to log out :" +token);
+            log.warn("Failed to log out: " + token, e);
             throw new AuthenticationException("Failed to Logout");
         }
     }

@@ -1,15 +1,10 @@
+/* (C)2024 */
 package com.starterkit.demo.integration;
 
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-import com.starterkit.demo.model.User;
-import com.starterkit.demo.repository.UserRepository;
-import com.starterkit.demo.service.RoleService;
-import com.starterkit.demo.service.UserService;
-import com.starterkit.demo.util.JwtUtil;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,26 +16,30 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import com.starterkit.demo.exception.ResourceNotFoundException;
+import com.starterkit.demo.model.User;
+import com.starterkit.demo.repository.UserRepository;
+import com.starterkit.demo.service.RoleService;
+import com.starterkit.demo.service.UserService;
+import com.starterkit.demo.util.JwtUtil;
 
- class UserServiceIntegrationTest {
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
-    @Mock
-    private UserRepository userRepository;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+class UserServiceIntegrationTest {
 
-    @Mock
-    private JwtUtil jwtUtil;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private RoleService roleService;
+    @Mock private PasswordEncoder passwordEncoder;
 
-    @InjectMocks
-    private UserService userService;
+    @Mock private JwtUtil jwtUtil;
+
+    @Mock private RoleService roleService;
+
+    @InjectMocks private UserService userService;
 
     @BeforeEach
     public void setup() {
@@ -48,11 +47,12 @@ import java.util.UUID;
     }
 
     @Test
-     void getAllUsers_WithNameFilter_ReturnsFilteredUserPage() {
+    void getAllUsers_WithNameFilter_ReturnsFilteredUserPage() {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByNameContaining(anyString(), any(PageRequest.class))).thenReturn(page);
+        when(userRepository.findByNameContaining(anyString(), any(PageRequest.class)))
+                .thenReturn(page);
 
         Page<User> result = userService.getAllUsers(0, 10, "test", null, "id", "asc");
 
@@ -61,11 +61,12 @@ import java.util.UUID;
     }
 
     @Test
-     void getAllUsers_WithEmailFilter_ReturnsFilteredUserPage() {
+    void getAllUsers_WithEmailFilter_ReturnsFilteredUserPage() {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByEmailContaining(anyString(), any(PageRequest.class))).thenReturn(page);
+        when(userRepository.findByEmailContaining(anyString(), any(PageRequest.class)))
+                .thenReturn(page);
 
         Page<User> result = userService.getAllUsers(0, 10, null, "test@example.com", "id", "asc");
 
@@ -74,11 +75,13 @@ import java.util.UUID;
     }
 
     @Test
-     void getAllUsers_WithNameAndEmailFilter_ReturnsFilteredUserPage() {
+    void getAllUsers_WithNameAndEmailFilter_ReturnsFilteredUserPage() {
         User user = new User();
         user.setUsername("testuser");
         Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByNameContainingAndEmailContaining(anyString(), anyString(), any(PageRequest.class))).thenReturn(page);
+        when(userRepository.findByNameContainingAndEmailContaining(
+                        anyString(), anyString(), any(PageRequest.class)))
+                .thenReturn(page);
 
         Page<User> result = userService.getAllUsers(0, 10, "test", "test@example.com", "id", "asc");
 
@@ -87,7 +90,7 @@ import java.util.UUID;
     }
 
     @Test
-     void getTotalCount_WithNameFilter_ReturnsCount() {
+    void getTotalCount_WithNameFilter_ReturnsCount() {
         when(userRepository.countByNameContaining(anyString())).thenReturn(1L);
 
         long count = userService.getTotalCount("test", null);
@@ -96,7 +99,7 @@ import java.util.UUID;
     }
 
     @Test
-     void getTotalCount_WithEmailFilter_ReturnsCount() {
+    void getTotalCount_WithEmailFilter_ReturnsCount() {
         when(userRepository.countByEmailContaining(anyString())).thenReturn(1L);
 
         long count = userService.getTotalCount(null, "test@example.com");
@@ -105,8 +108,9 @@ import java.util.UUID;
     }
 
     @Test
-     void getTotalCount_WithNameAndEmailFilter_ReturnsCount() {
-        when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString())).thenReturn(1L);
+    void getTotalCount_WithNameAndEmailFilter_ReturnsCount() {
+        when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString()))
+                .thenReturn(1L);
 
         long count = userService.getTotalCount("test", "test@example.com");
 
@@ -114,7 +118,7 @@ import java.util.UUID;
     }
 
     @Test
-     void updateUser_WithExistingUser_ReturnsUpdatedUser() {
+    void updateUser_WithExistingUser_ReturnsUpdatedUser() {
         UUID userId = UUID.randomUUID();
         User userDetails = new User();
         userDetails.setUsername("updateduser");
@@ -136,28 +140,29 @@ import java.util.UUID;
     }
 
     @Test
-     void getUserById_UserNotFound_ThrowsException() {
+    void getUserById_UserNotFound_ThrowsException() {
         UUID userId = UUID.randomUUID();
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserById(userId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("User not found");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with id: " + userId);
     }
 
     @Test
-     void getUserByUsername_UserNotFound_ThrowsException() {
+    void getUserByUsername_UserNotFound_ThrowsException() {
         String username = "nonexistentuser";
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserByUsername(username))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("User not found");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with username: " + username);
     }
 
     @Test
-     void deleteUser_UserDeletedSuccessfully() {
+    void deleteUser_UserDeletedSuccessfully() {
         UUID userId = UUID.randomUUID();
+        when(userRepository.existsById(userId)).thenReturn(true);
         doNothing().when(userRepository).deleteById(userId);
 
         userService.deleteUser(userId);
@@ -166,7 +171,7 @@ import java.util.UUID;
     }
 
     @Test
-     void logout_SuccessfullyClearsCookie() {
+    void logout_SuccessfullyClearsCookie() {
         HttpServletResponse response = new MockHttpServletResponse();
 
         userService.logout(response, "token");

@@ -26,6 +26,8 @@ export interface UserResponseDTO {
   imageUrl: string;
   emailVerified: boolean;
   authProvider: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface UserInfoResponse {
