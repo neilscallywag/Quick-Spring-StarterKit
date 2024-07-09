@@ -7,16 +7,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.ContextConfiguration;
 
-import com.starterkit.demo.config.TestStateConfig;
 import com.starterkit.demo.util.PaginationUtil;
 
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-@ContextConfiguration(classes = {TestStateConfig.class})
 
  class PaginationUtilUnitTest {
 

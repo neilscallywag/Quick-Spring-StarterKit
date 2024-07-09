@@ -19,7 +19,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.starterkit.demo.config.TestStateConfig;
 import com.starterkit.demo.dto.NewUserRequestDTO;
 import com.starterkit.demo.dto.UserResponseDTO;
 import com.starterkit.demo.exception.AuthenticationException;
@@ -39,7 +38,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-@ContextConfiguration(classes = {TestStateConfig.class})
 
 class UserServiceUnitTest {
 

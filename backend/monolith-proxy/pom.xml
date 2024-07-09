@@ -111,11 +111,6 @@
 			<version>2.6.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.togglz</groupId>
-			<artifactId>togglz-spring-web</artifactId>
-			<version>4.4.0</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-oauth2-client</artifactId>
 			<version>6.3.1</version>

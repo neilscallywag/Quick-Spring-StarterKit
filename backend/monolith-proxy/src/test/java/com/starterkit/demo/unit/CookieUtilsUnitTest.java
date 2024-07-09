@@ -8,14 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.starterkit.demo.config.TestStateConfig;
 import com.starterkit.demo.util.CookieUtils;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-@ContextConfiguration(classes = {TestStateConfig.class})
 
  class CookieUtilsUnitTest {
 

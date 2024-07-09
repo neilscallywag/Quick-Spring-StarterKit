@@ -1,6 +1,5 @@
 package com.starterkit.demo.unit;
 
-import com.starterkit.demo.config.TestStateConfig;
 import com.starterkit.demo.exception.AuthenticationException;
 import com.starterkit.demo.util.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -16,7 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-@ContextConfiguration(classes = {TestStateConfig.class})
 
 @SpringBootTest
 @TestPropertySource(properties = {

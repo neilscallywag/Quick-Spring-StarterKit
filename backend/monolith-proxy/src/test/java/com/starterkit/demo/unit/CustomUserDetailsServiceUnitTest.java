@@ -4,7 +4,7 @@ import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.starterkit.demo.config.TestStateConfig;
+import com.starterkit.demo.AppConfig;
 import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Optional;
 import java.util.Set;
-@ContextConfiguration(classes = {TestStateConfig.class})
+@ContextConfiguration(classes = AppConfig.class)
 
 public class CustomUserDetailsServiceUnitTest {
 
