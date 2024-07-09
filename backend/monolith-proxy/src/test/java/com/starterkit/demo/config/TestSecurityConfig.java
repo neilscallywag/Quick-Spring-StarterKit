@@ -2,6 +2,11 @@ package com.starterkit.demo.config;
 
 import com.starterkit.demo.MockJwtAuthenticationFilter;
 import com.starterkit.demo.service.CustomUserDetailsService;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -9,6 +14,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -38,4 +45,6 @@ public class TestSecurityConfig {
     public MockJwtAuthenticationFilter mockJwtAuthenticationFilter() {
         return new MockJwtAuthenticationFilter(userService);
     }
+  
+
 }

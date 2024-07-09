@@ -9,9 +9,17 @@ import org.springframework.test.context.ContextConfiguration;
 import com.starterkit.demo.config.TestContainersConfig;
 import com.starterkit.demo.config.TestDataInitializerConfig;
 import com.starterkit.demo.config.TestSecurityConfig;
+import com.starterkit.demo.config.TestStateConfig;
 
 @AutoConfigureMockMvc
-@ContextConfiguration(classes = {TestDataInitializerConfig.class, DemoApplication.class, TestContainersConfig.class, TestSecurityConfig.class})
+@ContextConfiguration(classes = {
+    AppConfig.class,
+    TestDataInitializerConfig.class,
+    TestContainersConfig.class,
+    TestSecurityConfig.class,
+    TestStateConfig.class,
+    DemoApplication.class
+})
 @SpringBootTest
 @ActiveProfiles("test")
 class DemoApplicationTests {

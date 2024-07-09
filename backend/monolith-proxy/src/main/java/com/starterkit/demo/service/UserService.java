@@ -122,6 +122,9 @@ public class UserService {
             if (userRepository.findByUsername(userRequestDTO.getUsername()).isPresent()) {
                 throw new InvalidRequestException("Username is already taken.");
             }
+            if (userRepository.findByEmail(userRequestDTO.getEmail()).isPresent()) {
+                throw new InvalidRequestException("Email is already taken.");
+            }
 
             userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
             User user = NewUserRequestDTO.toUser(userRequestDTO);

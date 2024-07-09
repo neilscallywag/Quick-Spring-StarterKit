@@ -31,7 +31,6 @@ public class PropertyBasedStateRepository implements StateRepository {
 
     @Override
     public void setFeatureState(FeatureState featureState) {
-        // This implementation does not support modifying feature states at runtime.
         throw new UnsupportedOperationException("Feature states are read-only");
     }
 }

@@ -4,6 +4,7 @@ import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.starterkit.demo.config.TestStateConfig;
 import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.repository.RoleRepository;
@@ -14,8 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Optional;
+@ContextConfiguration(classes = {TestStateConfig.class})
 
  class RoleServiceIntegrationTest {
 
