@@ -1,11 +1,7 @@
 import { useState } from "react";
-import { Helmet } from "react-helmet-async";
 import { CgAddR } from "react-icons/cg";
 import {
-  Box,
   Button,
-  Flex,
-  Heading,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -28,6 +24,7 @@ import {
 import PrimaryButton from "../../../modules/shared/components/buttons/PrimaryButton";
 import { UserTableType } from "../../../types/auth/user";
 import { api } from "../../api";
+import Container from "../../shared/components/container/container";
 import UserTable from "../components/table/UserTable";
 import useGetUsers from "../hooks/useGetUsers";
 
@@ -106,19 +103,16 @@ const ViewUser = () => {
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
 
   return (
-    <Box mt={0} p={1}>
-      <Helmet>
-        <title>User Table</title>
-        <meta name="description" content="User Table" />
-      </Helmet>
-      <Flex justifyContent="space-between" m={4} alignItems="center">
-        <Heading as="h3" size="lg">
-          Users
-        </Heading>
+    <Container
+      pageTitle="User Table"
+      metaDescription="User Table"
+      headingText="Users"
+      primaryButton={
         <PrimaryButton href="/users/create" leftIcon={<CgAddR />}>
           Enroll new user
         </PrimaryButton>
-      </Flex>
+      }
+    >
       <UserTable
         data={fetchedUsers}
         isError={isError}
@@ -154,7 +148,7 @@ const ViewUser = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Box>
+    </Container>
   );
 };
 

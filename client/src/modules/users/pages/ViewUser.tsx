@@ -2,19 +2,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Box,
-  Divider,
-  Flex,
   FormControl,
   FormLabel,
-  Heading,
   Input,
   useToast,
   VStack,
 } from "@chakra-ui/react";
 
 import { api } from "../../../modules/api";
+import UserCardContainer from "../../../modules/shared/components/card/card";
 import Loader from "../../../modules/shared/components/loader/Loader";
+import Container from "../../shared/components/container/container";
 
 const ViewUserPage = () => {
   const { userid } = useParams();
@@ -56,24 +54,17 @@ const ViewUserPage = () => {
   }, [userid, toast, navigate]);
 
   if (!userDetails) {
-    return <Loader></Loader>;
+    return <Loader />;
   }
 
   return (
-    <Flex width="full" align="center" justifyContent="center" mt={10}>
-      <Box
-        p={8}
-        maxWidth="700px"
-        w="full"
-        borderWidth={1}
-        borderRadius={8}
-        boxShadow="lg"
-      >
+    <Container
+      pageTitle="User Details"
+      metaDescription="Detailed view of a user"
+      headingText={userDetails.name}
+    >
+      <UserCardContainer>
         <VStack spacing={4} align="flex-start">
-          <Heading as="h1" size="xl">
-            {userDetails.name}
-          </Heading>
-          <Divider />
           <FormControl isReadOnly>
             <FormLabel htmlFor="username">Username</FormLabel>
             <Input
@@ -125,8 +116,8 @@ const ViewUserPage = () => {
             />
           </FormControl>
         </VStack>
-      </Box>
-    </Flex>
+      </UserCardContainer>
+    </Container>
   );
 };
 
