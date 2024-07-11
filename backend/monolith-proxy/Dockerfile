@@ -4,6 +4,7 @@ WORKDIR /app
 COPY pom.xml ./
 RUN mvn dependency:go-offline -B
 COPY src ./src
+# Since we using test containers we cannot run it within docker
 RUN mvn clean package -DskipTests
 
 

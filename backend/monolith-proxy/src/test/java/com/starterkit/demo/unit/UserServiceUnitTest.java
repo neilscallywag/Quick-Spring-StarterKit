@@ -17,11 +17,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ContextConfiguration;
 
 import com.starterkit.demo.dto.NewUserRequestDTO;
 import com.starterkit.demo.dto.UserResponseDTO;
 import com.starterkit.demo.exception.AuthenticationException;
+import com.starterkit.demo.exception.InvalidRequestException;
 import com.starterkit.demo.exception.ResourceNotFoundException;
 import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
@@ -42,11 +42,8 @@ import static org.mockito.Mockito.*;
 class UserServiceUnitTest {
 
     @Mock private UserRepository userRepository;
-
     @Mock private PasswordEncoder passwordEncoder;
-
     @Mock private JwtUtil jwtUtil;
-
     @Mock private RoleService roleService;
 
     @InjectMocks private UserService userService;
@@ -84,6 +81,52 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void createUser_UsernameAlreadyTaken_ThrowsException() {
+        NewUserRequestDTO dto = new NewUserRequestDTO();
+        dto.setUsername("newuser");
+        dto.setPassword("password");
+        dto.setName("New User");
+        dto.setEmail("newuser@example.com");
+
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.of(new User()));
+
+        assertThatThrownBy(() -> userService.createUser(dto))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Username is already taken.");
+    }
+
+    @Test
+    void createUser_EmailAlreadyTaken_ThrowsException() {
+        NewUserRequestDTO dto = new NewUserRequestDTO();
+        dto.setUsername("newuser");
+        dto.setPassword("password");
+        dto.setName("New User");
+        dto.setEmail("newuser@example.com");
+
+        when(userRepository.findByEmail("newuser@example.com")).thenReturn(Optional.of(new User()));
+
+        assertThatThrownBy(() -> userService.createUser(dto))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Email is already taken.");
+    }
+
+    @Test
+    void createUser_UnexpectedError_ThrowsException() {
+        NewUserRequestDTO dto = new NewUserRequestDTO();
+        dto.setUsername("newuser");
+        dto.setPassword("password");
+        dto.setName("New User");
+        dto.setEmail("newuser@example.com");
+
+        when(userRepository.findByUsername("newuser"))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        assertThatThrownBy(() -> userService.createUser(dto))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Failed to create user");
+    }
+
+    @Test
     void login_ValidCredentials_ReturnsToken() {
         User user = new User();
         user.setUsername("testuser");
@@ -118,6 +161,18 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void login_UnexpectedError_ThrowsException() {
+        when(userRepository.findByUsername("testuser"))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        HttpServletResponse response = new MockHttpServletResponse();
+
+        assertThatThrownBy(() -> userService.login("testuser", "password", response))
+                .isInstanceOf(AuthenticationException.class)
+                .hasMessage("Failed to login");
+    }
+
+    @Test
     void deleteUser_ValidId_DeletesUser() {
         UUID userId = UUID.randomUUID();
         User user = new User();
@@ -128,6 +183,26 @@ class UserServiceUnitTest {
         userService.deleteUser(userId);
 
         verify(userRepository, times(1)).delete(user);
+    }
+
+    @Test
+    void deleteUser_InvalidId_ThrowsException() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.deleteUser(userId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with id: " + userId);
+    }
+
+    @Test
+    void deleteUser_UnexpectedError_ThrowsException() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenThrow(new RuntimeException("Unexpected error"));
+
+        assertThatThrownBy(() -> userService.deleteUser(userId))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Failed to delete user");
     }
 
     @Test
@@ -152,6 +227,16 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void getUserById_UnexpectedError_ThrowsException() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenThrow(new RuntimeException("Unexpected error"));
+
+        assertThatThrownBy(() -> userService.getUserById(userId))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Failed to get user by id");
+    }
+
+    @Test
     void getUserByUsername_UserNotFound_ThrowsException() {
         String username = "nonexistentuser";
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
@@ -159,6 +244,17 @@ class UserServiceUnitTest {
         assertThatThrownBy(() -> userService.getUserByUsername(username))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("User not found with username: " + username);
+    }
+
+    @Test
+    void getUserByUsername_UnexpectedError_ThrowsException() {
+        String username = "testuser";
+        when(userRepository.findByUsername(username))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        assertThatThrownBy(() -> userService.getUserByUsername(username))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Failed to get user by username");
     }
 
     @Test
@@ -185,6 +281,45 @@ class UserServiceUnitTest {
         assertThat(updatedUser.getPassword()).isEqualTo("encodednewpassword");
         assertThat(updatedUser.getName()).isEqualTo("newname");
         assertThat(updatedUser.getEmail()).isEqualTo("newemail@example.com");
+    }
+
+    @Test
+    void updateUser_InvalidId_ThrowsException() {
+        UUID userId = UUID.randomUUID();
+        User updatedDetails = new User();
+        updatedDetails.setUsername("newusername");
+        updatedDetails.setPassword("newpassword");
+        updatedDetails.setName("newname");
+        updatedDetails.setEmail("newemail@example.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.updateUser(userId, updatedDetails))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found with id: " + userId);
+    }
+
+    @Test
+    void updateUser_UnexpectedError_ThrowsException() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setUsername("oldusername");
+        existingUser.setPassword("oldpassword");
+
+        User updatedDetails = new User();
+        updatedDetails.setUsername("newusername");
+        updatedDetails.setPassword("newpassword");
+        updatedDetails.setName("newname");
+        updatedDetails.setEmail("newemail@example.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class)))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        assertThatThrownBy(() -> userService.updateUser(userId, updatedDetails))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Failed to update user");
     }
 
     @Test
@@ -242,6 +377,29 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void getAllUsers_NoFilters_ReturnsUserPage() {
+        User user = new User();
+        user.setUsername("testuser");
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.findAll(any(PageRequest.class))).thenReturn(page);
+
+        Page<User> result = userService.getAllUsers(0, 10, null, null, "id", "asc");
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+    }
+
+    @Test
+    void getAllUsers_UnexpectedError_ThrowsException() {
+        when(userRepository.findAll(any(PageRequest.class)))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        assertThatThrownBy(() -> userService.getAllUsers(0, 10, null, null, "id", "asc"))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Failed to retrieve users");
+    }
+
+    @Test
     void getTotalCount_WithNameFilter_ReturnsCount() {
         when(userRepository.countByNameContaining(anyString())).thenReturn(1L);
 
@@ -267,5 +425,23 @@ class UserServiceUnitTest {
         long count = userService.getTotalCount("test", "test@example.com");
 
         assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    void getTotalCount_NoFilters_ReturnsCount() {
+        when(userRepository.count()).thenReturn(1L);
+
+        long count = userService.getTotalCount(null, null);
+
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    void getTotalCount_UnexpectedError_ThrowsException() {
+        when(userRepository.count()).thenThrow(new RuntimeException("Unexpected error"));
+
+        assertThatThrownBy(() -> userService.getTotalCount(null, null))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessage("Failed to get user count");
     }
 }

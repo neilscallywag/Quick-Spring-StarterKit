@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.repository.UserRepository;
+import com.starterkit.demo.service.base.BaseService;
 import com.starterkit.demo.util.JwtUtil;
 
 import jakarta.servlet.http.Cookie;
@@ -35,12 +37,19 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class UserService {
+public class UserService extends BaseService<User, UUID> {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RoleService roleService;
+    @Lazy
+    private final UserService self;
+
+    @Override
+    public UserRepository getRepository() {
+        return userRepository;
+    }
 
     public Page<User> getAllUsers(
             int page,
@@ -88,17 +97,7 @@ public class UserService {
     }
 
     public User getUserById(UUID id) {
-        try {
-            return userRepository
-                    .findById(id)
-                    .orElseThrow(
-                            () -> new ResourceNotFoundException("User not found with id: " + id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to get user by id", e);
-            throw new InvalidRequestException("Failed to get user by id");
-        }
+        return this.findById(id);
     }
 
     public User getUserByUsername(String username) {
@@ -133,7 +132,7 @@ public class UserService {
 
             user.getRoles().add(defaultRole);
 
-            User savedUser = userRepository.save(user);
+            User savedUser = self.create(user);
 
             return convertToUserResponseDTO(savedUser);
         } catch (InvalidRequestException e) {
@@ -193,7 +192,7 @@ public class UserService {
             user.setImageUrl(userDetails.getImageUrl());
             user.setEmailVerified(userDetails.getEmailVerified());
             user.setAuthProvider(userDetails.getAuthProvider());
-            return userRepository.save(user);
+            return self.update(user);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -203,17 +202,7 @@ public class UserService {
     }
 
     public void deleteUser(UUID id) {
-        try {
-            User user = getUserById(id);
-            user.getRoles().clear();
-            userRepository.save(user);
-            userRepository.delete(user);
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to delete user", e);
-            throw new InvalidRequestException("Failed to delete user");
-        }
+        self.delete(id);
     }
 
     public String login(String username, String password, HttpServletResponse response) {
