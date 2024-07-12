@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.starterkit.demo.config.SecurityConfig;
 import com.starterkit.demo.dto.*;
 import com.starterkit.demo.exception.*;
 import com.starterkit.demo.model.User;
@@ -100,7 +101,7 @@ public class UserController {
 
     @PostMapping("/me")
     public ResponseEntity<MeResponseDTO> getMe(
-            @CookieValue(name = "JWT_TOKEN", required = false) String token) {
+            @CookieValue(name = SecurityConfig.AUTH_TOKEN, required = false) String token) {
         if (token == null || token.isBlank()) {
             throw new InvalidRequestException("Token is missing");
         }
@@ -125,7 +126,7 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout(
             HttpServletResponse response,
-            @CookieValue(name = "JWT_TOKEN", required = false) String token) {
+            @CookieValue(name = SecurityConfig.AUTH_TOKEN, required = false) String token) {
         userService.logout(response);
         return ResponseEntity.ok("Logged out successfully");
     }

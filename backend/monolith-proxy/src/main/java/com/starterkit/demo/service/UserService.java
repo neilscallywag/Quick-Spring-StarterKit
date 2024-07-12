@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.starterkit.demo.config.SecurityConfig;
 import com.starterkit.demo.dto.NewUserRequestDTO;
 import com.starterkit.demo.dto.UserResponseDTO;
 import com.starterkit.demo.event.TransactionEventListener.TransactionEvent;
@@ -158,7 +159,7 @@ public class UserService {
     }
 
     private void addJwtCookie(HttpServletResponse response, String token) {
-        Cookie cookie = new Cookie("JWT_TOKEN", token);
+        Cookie cookie = new Cookie(SecurityConfig.AUTH_TOKEN, token);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
@@ -167,7 +168,7 @@ public class UserService {
     }
 
     private void removeJwtCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie("JWT_TOKEN", null);
+        Cookie cookie = new Cookie(SecurityConfig.AUTH_TOKEN, null);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");

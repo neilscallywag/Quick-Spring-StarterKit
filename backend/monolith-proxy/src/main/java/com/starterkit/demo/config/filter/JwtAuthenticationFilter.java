@@ -1,6 +1,7 @@
 package com.starterkit.demo.config.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.starterkit.demo.config.SecurityConfig;
 import com.starterkit.demo.exception.AuthenticationException;
 import com.starterkit.demo.service.CustomUserDetailsService;
 import com.starterkit.demo.util.JwtUtil;
@@ -79,7 +80,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(@NonNull HttpServletRequest request) {
-        return CookieUtils.getInstance().getCookie(request, "JWT_TOKEN").map(Cookie::getValue).orElse(null);
+        return CookieUtils.getInstance().getCookie(request, SecurityConfig.AUTH_TOKEN).map(Cookie::getValue).orElse(null);
     }
 
     private void handleAuthenticationException(@NonNull HttpServletResponse response, @NonNull AuthenticationException ex) throws IOException {

@@ -46,6 +46,9 @@ public class SecurityConfig {
     private static final String API_USERS_ID = "/api/users/{id}";
     private static final String API_USERS = "/api/users";
 
+    public static final String  AUTH_TOKEN = "JWT_TOKEN";
+
+
     private final CustomUserDetailsService customUserDetailsService;
     private final LogIdFilter logIdFilter;
 
@@ -110,7 +113,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, API_USERS_ID).hasAuthority(ROLE_MANAGER.name())
                             .anyRequest().authenticated();
                 })
-                .addFilterBefore(logIdFilter, AuthorizationFilter.class) // Add LogIdFilter before AuthorizationFilter
+                .addFilterBefore(logIdFilter, AuthorizationFilter.class) 
                 .addFilterBefore(jwtAuthenticationFilter(), AuthorizationFilter.class);
         return http.build();
     }
