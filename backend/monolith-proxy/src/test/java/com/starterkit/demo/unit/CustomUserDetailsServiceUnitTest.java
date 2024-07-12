@@ -4,7 +4,6 @@ import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.starterkit.demo.AppConfig;
 import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
@@ -18,13 +17,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Optional;
 import java.util.Set;
-@ContextConfiguration(classes = AppConfig.class)
 
-public class CustomUserDetailsServiceUnitTest {
+ class CustomUserDetailsServiceUnitTest {
 
     @Mock
     private UserRepository userRepository;
@@ -33,12 +30,12 @@ public class CustomUserDetailsServiceUnitTest {
     private CustomUserDetailsService customUserDetailsService;
 
     @BeforeEach
-    public void setup() {
+     void setup() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void loadUserByUsername_UserExists_ReturnsUserDetails() {
+     void loadUserByUsername_UserExists_ReturnsUserDetails() {
         User user = new User();
         user.setUsername("testuser");
         user.setPassword("password");
@@ -56,7 +53,7 @@ public class CustomUserDetailsServiceUnitTest {
     }
 
     @Test
-    public void loadUserByUsername_UserDoesNotExist_ThrowsException() {
+     void loadUserByUsername_UserDoesNotExist_ThrowsException() {
         when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> customUserDetailsService.loadUserByUsername("nonexistent"))

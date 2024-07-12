@@ -46,12 +46,10 @@ public class SecurityConfig {
     private static final String API_USERS_ID = "/api/users/{id}";
     private static final String API_USERS = "/api/users";
 
-    private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
     private final LogIdFilter logIdFilter;
 
-    public SecurityConfig(JwtUtil jwtUtil, CustomUserDetailsService customUserDetailsService, LogIdFilter logIdFilter) {
-        this.jwtUtil = jwtUtil;
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService, LogIdFilter logIdFilter) {
         this.customUserDetailsService = customUserDetailsService;
         this.logIdFilter = logIdFilter;
     }
@@ -69,7 +67,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtUtil, customUserDetailsService);
+        return new JwtAuthenticationFilter(customUserDetailsService);
     }
 
     @Bean

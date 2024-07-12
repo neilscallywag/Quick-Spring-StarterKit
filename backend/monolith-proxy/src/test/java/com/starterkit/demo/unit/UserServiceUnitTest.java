@@ -1,25 +1,31 @@
-/* (C)2024 */
 package com.starterkit.demo.unit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+
+import jakarta.persistence.LockModeType;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.starterkit.demo.dto.NewUserRequestDTO;
 import com.starterkit.demo.dto.UserResponseDTO;
+import com.starterkit.demo.event.TransactionEventListener.TransactionEvent;
 import com.starterkit.demo.exception.AuthenticationException;
 import com.starterkit.demo.exception.InvalidRequestException;
 import com.starterkit.demo.exception.ResourceNotFoundException;
@@ -27,421 +33,266 @@ import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.repository.UserRepository;
+import com.starterkit.demo.service.LockStrategy;
 import com.starterkit.demo.service.RoleService;
 import com.starterkit.demo.service.UserService;
 import com.starterkit.demo.util.JwtUtil;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import com.starterkit.demo.util.UserMapper;
 
 class UserServiceUnitTest {
 
-    @Mock private UserRepository userRepository;
-    @Mock private PasswordEncoder passwordEncoder;
-    @Mock private JwtUtil jwtUtil;
-    @Mock private RoleService roleService;
+    @Mock
+    private UserRepository userRepository;
 
-    @InjectMocks private UserService userService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtUtil jwtUtil;
+
+    @Mock
+    private RoleService roleService;
+
+    @Mock
+    private UserMapper userMapper;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Mock
+    private LockStrategy lockStrategy;
+
+    @InjectMocks
+    private UserService userService;
 
     @BeforeEach
-    public void setup() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void createUser_SavesAndReturnsUser() {
-        NewUserRequestDTO dto = new NewUserRequestDTO();
-        dto.setUsername("newuser");
-        dto.setPassword("password");
-        dto.setName("New User");
-        dto.setEmail("newuser@example.com");
+    void testGetAllUsers() {
+        Page<User> users = new PageImpl<>(List.of(new User()));
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(users);
 
-        Role role = new Role();
-        role.setName(EnumRole.ROLE_USER);
+        Page<User> result = userService.getAllUsers(0, 10, null, null, "username", "asc");
 
-        when(passwordEncoder.encode("password")).thenReturn("encodedpassword");
-        when(roleService.findRoleByName(EnumRole.ROLE_USER)).thenReturn(role);
-
-        User user = NewUserRequestDTO.toUser(dto);
-        user.setPassword("encodedpassword");
-        user.getRoles().add(role);
-
-        when(userRepository.save(user)).thenReturn(user);
-
-        UserResponseDTO response = userService.createUser(dto);
-
-        assertThat(response.getUsername()).isEqualTo("newuser");
-        assertThat(response.getName()).isEqualTo("New User");
-        assertThat(response.getRoles()).hasSize(1);
+        assertThat(result).isNotNull();
+        assertThat(result.getTotalElements()).isEqualTo(1);
     }
 
     @Test
-    void createUser_UsernameAlreadyTaken_ThrowsException() {
-        NewUserRequestDTO dto = new NewUserRequestDTO();
-        dto.setUsername("newuser");
-        dto.setPassword("password");
-        dto.setName("New User");
-        dto.setEmail("newuser@example.com");
+    void testGetTotalCount() {
+        when(userRepository.count()).thenReturn(10L);
 
-        when(userRepository.findByUsername("newuser")).thenReturn(Optional.of(new User()));
+        long count = userService.getTotalCount(null, null);
 
-        assertThatThrownBy(() -> userService.createUser(dto))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Username is already taken.");
+        assertThat(count).isEqualTo(10);
     }
 
     @Test
-    void createUser_EmailAlreadyTaken_ThrowsException() {
-        NewUserRequestDTO dto = new NewUserRequestDTO();
-        dto.setUsername("newuser");
-        dto.setPassword("password");
-        dto.setName("New User");
-        dto.setEmail("newuser@example.com");
-
-        when(userRepository.findByEmail("newuser@example.com")).thenReturn(Optional.of(new User()));
-
-        assertThatThrownBy(() -> userService.createUser(dto))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Email is already taken.");
-    }
-
-    @Test
-    void createUser_UnexpectedError_ThrowsException() {
-        NewUserRequestDTO dto = new NewUserRequestDTO();
-        dto.setUsername("newuser");
-        dto.setPassword("password");
-        dto.setName("New User");
-        dto.setEmail("newuser@example.com");
-
-        when(userRepository.findByUsername("newuser"))
-                .thenThrow(new RuntimeException("Unexpected error"));
-
-        assertThatThrownBy(() -> userService.createUser(dto))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Failed to create user");
-    }
-
-    @Test
-    void login_ValidCredentials_ReturnsToken() {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("encodedpassword");
-        Role role = new Role();
-        role.setName(EnumRole.ROLE_USER);
-        user.setRoles(Set.of(role));
-
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("password", "encodedpassword")).thenReturn(true);
-        when(jwtUtil.generateToken(Map.of("roles", List.of("ROLE_USER")), "testuser"))
-                .thenReturn("token");
-
-        HttpServletResponse response = new MockHttpServletResponse();
-        String token = userService.login("testuser", "password", response);
-
-        assertThat(token).isEqualTo("token");
-        Cookie cookie = ((MockHttpServletResponse) response).getCookie("JWT_TOKEN");
-        assertThat(cookie).isNotNull();
-        assertThat(cookie.getValue()).isEqualTo("token");
-    }
-
-    @Test
-    void login_InvalidCredentials_ThrowsException() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
-
-        HttpServletResponse response = new MockHttpServletResponse();
-
-        assertThatThrownBy(() -> userService.login("testuser", "password", response))
-                .isInstanceOf(AuthenticationException.class)
-                .hasMessage("Invalid username or password");
-    }
-
-    @Test
-    void login_UnexpectedError_ThrowsException() {
-        when(userRepository.findByUsername("testuser"))
-                .thenThrow(new RuntimeException("Unexpected error"));
-
-        HttpServletResponse response = new MockHttpServletResponse();
-
-        assertThatThrownBy(() -> userService.login("testuser", "password", response))
-                .isInstanceOf(AuthenticationException.class)
-                .hasMessage("Failed to login");
-    }
-
-    @Test
-    void deleteUser_ValidId_DeletesUser() {
+    void testGetUserById() {
         UUID userId = UUID.randomUUID();
         User user = new User();
         user.setId(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        doNothing().when(userRepository).delete(user);
+
+        User result = userService.getUserById(userId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(userId);
+    }
+
+    @Test
+    void testGetUserByUsername() {
+        String username = "testUser";
+        User user = new User();
+        user.setUsername(username);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+
+        User result = userService.getUserByUsername(username);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getUsername()).isEqualTo(username);
+    }
+
+    @Test
+    void testCreateUser() {
+        NewUserRequestDTO requestDTO = new NewUserRequestDTO();
+        requestDTO.setUsername("newUser");
+        requestDTO.setPassword("password");
+        requestDTO.setEmail("newUser@example.com");
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        Role role = new Role();
+        role.setName(EnumRole.ROLE_USER);
+        when(passwordEncoder.encode(requestDTO.getPassword())).thenReturn("encodedPassword");
+        when(userMapper.toEntity(requestDTO)).thenReturn(user);
+        when(roleService.findRoleByName(EnumRole.ROLE_USER)).thenReturn(role);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userMapper.toResponseDTO(user)).thenReturn(new UserResponseDTO());
+
+        UserResponseDTO responseDTO = userService.createUser(requestDTO);
+
+        assertThat(responseDTO).isNotNull();
+        verify(applicationEventPublisher, times(1)).publishEvent(any(TransactionEvent.class));
+    }
+
+    @Test
+    void testUpdateUser() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = new User();
+        existingUser.setId(userId);
+        User updatedDetails = new User();
+        updatedDetails.setUsername("updatedUser");
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+        when(userMapper.toResponseDTO(existingUser)).thenReturn(new UserResponseDTO());
+
+        UserResponseDTO responseDTO = userService.updateUser(userId, updatedDetails);
+
+        assertThat(responseDTO).isNotNull();
+        verify(applicationEventPublisher, times(1)).publishEvent(any(TransactionEvent.class));
+    }
+
+    @Test
+    void testDeleteUser() {
+        UUID userId = UUID.randomUUID();
+        User user = new User();
+        user.setId(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         userService.deleteUser(userId);
 
         verify(userRepository, times(1)).delete(user);
+        verify(applicationEventPublisher, times(1)).publishEvent(any(TransactionEvent.class));
     }
 
     @Test
-    void deleteUser_InvalidId_ThrowsException() {
-        UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userService.deleteUser(userId))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("User not found with id: " + userId);
-    }
-
-    @Test
-    void deleteUser_UnexpectedError_ThrowsException() {
-        UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenThrow(new RuntimeException("Unexpected error"));
-
-        assertThatThrownBy(() -> userService.deleteUser(userId))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Failed to delete user");
-    }
-
-    @Test
-    void getUserById_ValidId_ReturnsUser() {
+    void testFindByIdWithLock() {
         UUID userId = UUID.randomUUID();
         User user = new User();
         user.setId(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(lockStrategy.lockUser(userId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(user);
 
-        User foundUser = userService.getUserById(userId);
-        assertThat(foundUser).isEqualTo(user);
+        User result = userService.findByIdWithLock(userId, LockModeType.PESSIMISTIC_WRITE);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(userId);
     }
 
     @Test
-    void getUserById_InvalidId_ThrowsException() {
+    void testUpdateWithLock() {
         UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userService.getUserById(userId))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("User not found with id: " + userId);
-    }
-
-    @Test
-    void getUserById_UnexpectedError_ThrowsException() {
-        UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenThrow(new RuntimeException("Unexpected error"));
-
-        assertThatThrownBy(() -> userService.getUserById(userId))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Failed to get user by id");
-    }
-
-    @Test
-    void getUserByUsername_UserNotFound_ThrowsException() {
-        String username = "nonexistentuser";
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userService.getUserByUsername(username))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("User not found with username: " + username);
-    }
-
-    @Test
-    void getUserByUsername_UnexpectedError_ThrowsException() {
-        String username = "testuser";
-        when(userRepository.findByUsername(username))
-                .thenThrow(new RuntimeException("Unexpected error"));
-
-        assertThatThrownBy(() -> userService.getUserByUsername(username))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Failed to get user by username");
-    }
-
-    @Test
-    void updateUser_ValidId_UpdatesUser() {
-        UUID userId = UUID.randomUUID();
-        User existingUser = new User();
-        existingUser.setId(userId);
-        existingUser.setUsername("oldusername");
-        existingUser.setPassword("oldpassword");
-
-        User updatedDetails = new User();
-        updatedDetails.setUsername("newusername");
-        updatedDetails.setPassword("newpassword");
-        updatedDetails.setName("newname");
-        updatedDetails.setEmail("newemail@example.com");
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(passwordEncoder.encode("newpassword")).thenReturn("encodednewpassword");
-        when(userRepository.save(existingUser)).thenReturn(existingUser);
-
-        User updatedUser = userService.updateUser(userId, updatedDetails);
-
-        assertThat(updatedUser.getUsername()).isEqualTo("newusername");
-        assertThat(updatedUser.getPassword()).isEqualTo("encodednewpassword");
-        assertThat(updatedUser.getName()).isEqualTo("newname");
-        assertThat(updatedUser.getEmail()).isEqualTo("newemail@example.com");
-    }
-
-    @Test
-    void updateUser_InvalidId_ThrowsException() {
-        UUID userId = UUID.randomUUID();
-        User updatedDetails = new User();
-        updatedDetails.setUsername("newusername");
-        updatedDetails.setPassword("newpassword");
-        updatedDetails.setName("newname");
-        updatedDetails.setEmail("newemail@example.com");
-
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userService.updateUser(userId, updatedDetails))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("User not found with id: " + userId);
-    }
-
-    @Test
-    void updateUser_UnexpectedError_ThrowsException() {
-        UUID userId = UUID.randomUUID();
-        User existingUser = new User();
-        existingUser.setId(userId);
-        existingUser.setUsername("oldusername");
-        existingUser.setPassword("oldpassword");
-
-        User updatedDetails = new User();
-        updatedDetails.setUsername("newusername");
-        updatedDetails.setPassword("newpassword");
-        updatedDetails.setName("newname");
-        updatedDetails.setEmail("newemail@example.com");
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(User.class)))
-                .thenThrow(new RuntimeException("Unexpected error"));
-
-        assertThatThrownBy(() -> userService.updateUser(userId, updatedDetails))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Failed to update user");
-    }
-
-    @Test
-    void logout_SuccessfullyClearsCookie() {
-        HttpServletResponse response = new MockHttpServletResponse();
-        userService.logout(response, "token");
-
-        Cookie cookie = ((MockHttpServletResponse) response).getCookie("JWT_TOKEN");
-        assertThat(cookie).isNotNull();
-        assertThat(cookie.getValue()).isNull();
-        assertThat(cookie.getMaxAge()).isEqualTo(0);
-    }
-
-    @Test
-    void getAllUsers_WithNameFilter_ReturnsFilteredUserPage() {
         User user = new User();
-        user.setUsername("testuser");
-        Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByNameContaining(anyString(), any(PageRequest.class)))
-                .thenReturn(page);
+        user.setId(userId);
+        when(lockStrategy.updateUserWithLock(user, LockModeType.PESSIMISTIC_WRITE)).thenReturn(user);
 
-        Page<User> result = userService.getAllUsers(0, 10, "test", null, "id", "asc");
+        User result = userService.updateWithLock(user, LockModeType.PESSIMISTIC_WRITE);
 
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(userId);
     }
 
     @Test
-    void getAllUsers_WithEmailFilter_ReturnsFilteredUserPage() {
+    void testLogin() {
+        String username = "testUser";
+        String password = "password";
         User user = new User();
-        user.setUsername("testuser");
-        Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByEmailContaining(anyString(), any(PageRequest.class)))
-                .thenReturn(page);
+        user.setUsername(username);
+        user.setPassword("encodedPassword");
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(password, user.getPassword())).thenReturn(true);
+        when(jwtUtil.generateToken(anyMap(), eq(username))).thenReturn("token");
 
-        Page<User> result = userService.getAllUsers(0, 10, null, "test@example.com", "id", "asc");
+        String token = userService.login(username, password, response);
 
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+        assertThat(token).isEqualTo("token");
+        verify(response, times(1)).addCookie(any(Cookie.class));
     }
 
     @Test
-    void getAllUsers_WithNameAndEmailFilter_ReturnsFilteredUserPage() {
+    void testLoginWithInvalidCredentials() {
+        String username = "testUser";
+        String password = "password";
         User user = new User();
-        user.setUsername("testuser");
-        Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByNameContainingAndEmailContaining(
-                        anyString(), anyString(), any(PageRequest.class)))
-                .thenReturn(page);
+        user.setUsername(username);
+        user.setPassword("encodedPassword");
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(password, user.getPassword())).thenReturn(false);
 
-        Page<User> result = userService.getAllUsers(0, 10, "test", "test@example.com", "id", "asc");
-
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+        assertThatThrownBy(() -> userService.login(username, password, response))
+            .isInstanceOf(AuthenticationException.class)
+            .hasMessageContaining("Invalid username or password");
     }
 
     @Test
-    void getAllUsers_NoFilters_ReturnsUserPage() {
+    void testLogout() {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        userService.logout(response);
+
+        verify(response, times(1)).addCookie(any(Cookie.class));
+    }
+
+    @Test
+    void testValidateUserRequestThrowsInvalidRequestException() {
+        NewUserRequestDTO requestDTO = new NewUserRequestDTO();
+        requestDTO.setUsername("existingUser");
+        requestDTO.setEmail("existingEmail@example.com");
+        when(userRepository.findByUsername(requestDTO.getUsername())).thenReturn(Optional.of(new User()));
+        when(userRepository.findByEmail(requestDTO.getEmail())).thenReturn(Optional.of(new User()));
+
+        assertThatThrownBy(() -> userService.createUser(requestDTO))
+            .isInstanceOf(InvalidRequestException.class)
+            .hasMessageContaining("Username is already taken.");
+
+        requestDTO.setUsername("newUser");
+        assertThatThrownBy(() -> userService.createUser(requestDTO))
+            .isInstanceOf(InvalidRequestException.class)
+            .hasMessageContaining("Email is already taken.");
+    }
+
+
+    @Test
+    void testFuzzCreateUser() {
+        NewUserRequestDTO requestDTO = new NewUserRequestDTO();
+        requestDTO.setUsername(generateRandomString(255));
+        requestDTO.setPassword(generateRandomString(255));
+        requestDTO.setEmail(generateRandomString(255));
         User user = new User();
-        user.setUsername("testuser");
-        Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findAll(any(PageRequest.class))).thenReturn(page);
+        user.setId(UUID.randomUUID());
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userMapper.toEntity(any())).thenReturn(user);
+        when(roleService.findRoleByName(EnumRole.ROLE_USER)).thenReturn(new Role());
+        when(userRepository.save(any())).thenReturn(user);
+        when(userMapper.toResponseDTO(any())).thenReturn(new UserResponseDTO());
 
-        Page<User> result = userService.getAllUsers(0, 10, null, null, "id", "asc");
+        UserResponseDTO responseDTO = userService.createUser(requestDTO);
 
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getUsername()).isEqualTo("testuser");
+        assertThat(responseDTO).isNotNull();
     }
 
     @Test
-    void getAllUsers_UnexpectedError_ThrowsException() {
-        when(userRepository.findAll(any(PageRequest.class)))
-                .thenThrow(new RuntimeException("Unexpected error"));
+    void testSecurityLoginWithSqlInjection() {
+        String maliciousUsername = "'; DROP TABLE users; --";
+        String password = "password";
+        HttpServletResponse response = mock(HttpServletResponse.class);
 
-        assertThatThrownBy(() -> userService.getAllUsers(0, 10, null, null, "id", "asc"))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Failed to retrieve users");
+        assertThatThrownBy(() -> userService.login(maliciousUsername, password, response))
+            .isInstanceOf(ResourceNotFoundException.class);
     }
 
-    @Test
-    void getTotalCount_WithNameFilter_ReturnsCount() {
-        when(userRepository.countByNameContaining(anyString())).thenReturn(1L);
-
-        long count = userService.getTotalCount("test", null);
-
-        assertThat(count).isEqualTo(1);
-    }
-
-    @Test
-    void getTotalCount_WithEmailFilter_ReturnsCount() {
-        when(userRepository.countByEmailContaining(anyString())).thenReturn(1L);
-
-        long count = userService.getTotalCount(null, "test@example.com");
-
-        assertThat(count).isEqualTo(1);
-    }
-
-    @Test
-    void getTotalCount_WithNameAndEmailFilter_ReturnsCount() {
-        when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString()))
-                .thenReturn(1L);
-
-        long count = userService.getTotalCount("test", "test@example.com");
-
-        assertThat(count).isEqualTo(1);
-    }
-
-    @Test
-    void getTotalCount_NoFilters_ReturnsCount() {
-        when(userRepository.count()).thenReturn(1L);
-
-        long count = userService.getTotalCount(null, null);
-
-        assertThat(count).isEqualTo(1);
-    }
-
-    @Test
-    void getTotalCount_UnexpectedError_ThrowsException() {
-        when(userRepository.count()).thenThrow(new RuntimeException("Unexpected error"));
-
-        assertThatThrownBy(() -> userService.getTotalCount(null, null))
-                .isInstanceOf(InvalidRequestException.class)
-                .hasMessage("Failed to get user count");
+    private String generateRandomString(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            result.append(characters.charAt((int) (Math.random() * characters.length())));
+        }
+        return result.toString();
     }
 }

@@ -38,8 +38,8 @@ public class TestContainersConfig {
         return new JdbcTemplate(dataSource);
     }
 
-    @Bean
-    public TestDataInitializerConfig dataInitializerTest(JdbcTemplate jdbcTemplate) {
-        return new TestDataInitializerConfig(jdbcTemplate);
-    }
+    // @Bean
+    // public TestDataInitializerConfig dataInitializerTest(JdbcTemplate jdbcTemplate) {
+    //     return new TestDataInitializerConfig(jdbcTemplate);
+    // }
 }

@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.Setter;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,19 +15,34 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
 
-// TODO: Convert the class to SINGLETON
 
 @Component
 public class JwtUtil {
 
     @Value("${jwt.secret}")
+    @Setter
     private String secret;
 
     @Value("${jwt.expiration}")
+    @Setter
     private Long expiration;
 
     @Value("${jwt.clockSkew}")
+    @Setter
     private Long clockSkew;
+
+    private static JwtUtil instance;
+
+    private JwtUtil() {
+        // private constructor to enforce singleton pattern
+    }
+
+    public static synchronized JwtUtil getInstance() {
+        if (instance == null) {
+            instance = new JwtUtil();
+        }
+        return instance;
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
@@ -82,16 +98,5 @@ public class JwtUtil {
         return claims.getSubject();
     }
 
-    // Setters for testing purposes
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
 
-    public void setExpiration(Long expiration) {
-        this.expiration = expiration;
-    }
-
-    public void setClockSkew(Long clockSkew) {
-        this.clockSkew = clockSkew;
-    }
 }

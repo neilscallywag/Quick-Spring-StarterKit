@@ -14,11 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.util.Optional;
 
-public class RoleServiceUnitTest {
+ class RoleServiceUnitTest {
 
     @Mock
     private RoleRepository roleRepository;
@@ -32,7 +30,7 @@ public class RoleServiceUnitTest {
     }
 
     @Test
-    public void findRoleByName_RoleExists_ReturnsRole() {
+     void findRoleByName_RoleExists_ReturnsRole() {
         Role role = new Role();
         role.setName(EnumRole.ROLE_USER);
 
@@ -44,7 +42,7 @@ public class RoleServiceUnitTest {
     }
 
     @Test
-    public void findRoleByName_RoleDoesNotExist_ThrowsException() {
+     void findRoleByName_RoleDoesNotExist_ThrowsException() {
         when(roleRepository.findByName(EnumRole.ROLE_USER)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> roleService.findRoleByName(EnumRole.ROLE_USER))

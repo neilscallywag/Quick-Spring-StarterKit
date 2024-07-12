@@ -29,10 +29,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userService;
 
-    public JwtAuthenticationFilter(@NonNull JwtUtil jwtUtil, @NonNull CustomUserDetailsService userService) {
-        this.jwtUtil = jwtUtil;
+    public JwtAuthenticationFilter(@NonNull CustomUserDetailsService userService) {
+        this.jwtUtil = JwtUtil.getInstance();
         this.userService = userService;
     }
+
 
     @Override
     protected void doFilterInternal(

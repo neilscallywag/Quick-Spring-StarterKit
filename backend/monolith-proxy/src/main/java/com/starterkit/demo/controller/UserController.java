@@ -70,10 +70,10 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(
+    public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable UUID id, @Valid @RequestBody User userDetails) {
         validateUser(userDetails);
-        User updatedUser = userService.updateUser(id, userDetails);
+        UserResponseDTO updatedUser = userService.updateUser(id, userDetails);
         if (updatedUser == null) {
             throw new ResourceNotFoundException("User not found with id " + id);
         }
@@ -126,7 +126,7 @@ public class UserController {
     public ResponseEntity<String> logout(
             HttpServletResponse response,
             @CookieValue(name = "JWT_TOKEN", required = false) String token) {
-        userService.logout(response, token);
+        userService.logout(response);
         return ResponseEntity.ok("Logged out successfully");
     }
 
