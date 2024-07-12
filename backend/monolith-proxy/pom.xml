@@ -81,17 +81,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-rest</artifactId>
         </dependency>
-      <dependency>
-  <groupId>io.opentelemetry</groupId>
-  <artifactId>opentelemetry-api</artifactId>
-</dependency>
- <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-bom</artifactId>
-      <version>1.36.0</version>
-      <type>pom</type>
-      <scope>import</scope>
-    </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-bom</artifactId>
+            <version>1.36.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -212,6 +212,9 @@
                                 <exclude>com/starterkit/demo/features/**</exclude>
                                 <exclude>com/starterkit/demo/aspect/**</exclude>
                                 <exclude>com/starterkit/demo/controller/**</exclude>
+                                <exclude>com/starterkit/demo/clients/**</exclude>
+                                <exclude>com/starterkit/demo/event/**</exclude>
+
                             </excludes>
                             <rules>
                                 <rule>

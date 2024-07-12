@@ -93,10 +93,6 @@ public class UserService {
         Role defaultRole = roleService.findRoleByName(EnumRole.ROLE_USER);
         user.getRoles().add(defaultRole);
 
-        if (user.getId() == null) {
-            user.setId(UUID.randomUUID());
-        }
-
         User savedUser = userRepository.save(user);
         publishTxLogEvent(TransactionType.CREATE, savedUser.getId());
         return userMapper.toResponseDTO(savedUser);

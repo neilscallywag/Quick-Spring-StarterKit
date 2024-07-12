@@ -3,7 +3,7 @@ package com.starterkit.demo.unit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -48,9 +48,6 @@ class UserServiceUnitTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private JwtUtil jwtUtil;
-
-    @Mock
     private RoleService roleService;
 
     @Mock
@@ -82,12 +79,32 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void testGetAllUsersWithFilters() {
+        Page<User> users = new PageImpl<>(List.of(new User()));
+        when(userRepository.findByNameContainingAndEmailContaining(anyString(), anyString(), any(Pageable.class))).thenReturn(users);
+
+        Page<User> result = userService.getAllUsers(0, 10, "name", "email", "username", "asc");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
     void testGetTotalCount() {
         when(userRepository.count()).thenReturn(10L);
 
         long count = userService.getTotalCount(null, null);
 
         assertThat(count).isEqualTo(10);
+    }
+
+    @Test
+    void testGetTotalCountWithFilters() {
+        when(userRepository.countByNameContainingAndEmailContaining(anyString(), anyString())).thenReturn(5L);
+
+        long count = userService.getTotalCount("name", "email");
+
+        assertThat(count).isEqualTo(5);
     }
 
     @Test
@@ -104,6 +121,16 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void testGetUserByIdNotFound() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getUserById(userId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining(userId.toString());
+    }
+
+    @Test
     void testGetUserByUsername() {
         String username = "testUser";
         User user = new User();
@@ -114,6 +141,16 @@ class UserServiceUnitTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getUsername()).isEqualTo(username);
+    }
+
+    @Test
+    void testGetUserByUsernameNotFound() {
+        String username = "testUser";
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getUserByUsername(username))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining(username);
     }
 
     @Test
@@ -139,6 +176,30 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void testCreateUserWithExistingUsername() {
+        NewUserRequestDTO requestDTO = new NewUserRequestDTO();
+        requestDTO.setUsername("existingUser");
+        requestDTO.setEmail("newUser@example.com");
+        when(userRepository.findByUsername(requestDTO.getUsername())).thenReturn(Optional.of(new User()));
+
+        assertThatThrownBy(() -> userService.createUser(requestDTO))
+            .isInstanceOf(InvalidRequestException.class)
+            .hasMessageContaining("Username is already taken.");
+    }
+
+    @Test
+    void testCreateUserWithExistingEmail() {
+        NewUserRequestDTO requestDTO = new NewUserRequestDTO();
+        requestDTO.setUsername("newUser");
+        requestDTO.setEmail("existingEmail@example.com");
+        when(userRepository.findByEmail(requestDTO.getEmail())).thenReturn(Optional.of(new User()));
+
+        assertThatThrownBy(() -> userService.createUser(requestDTO))
+            .isInstanceOf(InvalidRequestException.class)
+            .hasMessageContaining("Email is already taken.");
+    }
+
+    @Test
     void testUpdateUser() {
         UUID userId = UUID.randomUUID();
         User existingUser = new User();
@@ -156,6 +217,17 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void testUpdateUserNotFound() {
+        UUID userId = UUID.randomUUID();
+        User updatedDetails = new User();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.updateUser(userId, updatedDetails))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining(userId.toString());
+    }
+
+    @Test
     void testDeleteUser() {
         UUID userId = UUID.randomUUID();
         User user = new User();
@@ -166,6 +238,16 @@ class UserServiceUnitTest {
 
         verify(userRepository, times(1)).delete(user);
         verify(applicationEventPublisher, times(1)).publishEvent(any(TransactionEvent.class));
+    }
+
+    @Test
+    void testDeleteUserNotFound() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.deleteUser(userId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining(userId.toString());
     }
 
     @Test
@@ -204,11 +286,10 @@ class UserServiceUnitTest {
         HttpServletResponse response = mock(HttpServletResponse.class);
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPassword())).thenReturn(true);
-        when(jwtUtil.generateToken(anyMap(), eq(username))).thenReturn("token");
 
         String token = userService.login(username, password, response);
 
-        assertThat(token).isEqualTo("token");
+        assertThat(JwtUtil.getInstance().getUserNameFromToken(token)).isEqualTo("testUser");
         verify(response, times(1)).addCookie(any(Cookie.class));
     }
 
@@ -254,7 +335,6 @@ class UserServiceUnitTest {
             .isInstanceOf(InvalidRequestException.class)
             .hasMessageContaining("Email is already taken.");
     }
-
 
     @Test
     void testFuzzCreateUser() {

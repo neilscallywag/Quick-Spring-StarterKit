@@ -54,7 +54,7 @@ public class UserMapper {
         return dto;
     }
 
-    private RoleDTO toRoleDTO(Role role) {
+    public RoleDTO toRoleDTO(Role role) {
         if (role == null) {
             return null;
         }
