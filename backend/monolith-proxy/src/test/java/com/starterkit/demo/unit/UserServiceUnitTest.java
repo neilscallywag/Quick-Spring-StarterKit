@@ -24,7 +24,6 @@ import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
 import com.starterkit.demo.repository.UserRepository;
-import com.starterkit.demo.service.LockStrategy;
 import com.starterkit.demo.service.RoleService;
 import com.starterkit.demo.service.UserService;
 import com.starterkit.demo.util.CookieUtils;
@@ -50,8 +49,6 @@ class UserServiceUnitTest {
     @Mock private UserMapper userMapper;
 
     @Mock private ApplicationEventPublisher applicationEventPublisher;
-
-    @Mock private LockStrategy lockStrategy;
 
     @Mock private CookieUtils cookieUtils;
 
