@@ -42,7 +42,7 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("Running DataInitializer...");
         createRolesIfNotExist();
-        // createUsersForTesting(10009999);
+        createUsersForTesting(1000);
     }
 
     private void createRolesIfNotExist() {

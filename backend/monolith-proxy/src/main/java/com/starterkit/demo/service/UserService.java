@@ -1,3 +1,4 @@
+/* (C)2024 */
 package com.starterkit.demo.service;
 
 import java.util.Map;
@@ -24,14 +25,14 @@ import com.starterkit.demo.exception.ResourceNotFoundException;
 import com.starterkit.demo.model.EnumRole;
 import com.starterkit.demo.model.Role;
 import com.starterkit.demo.model.User;
+import com.starterkit.demo.processor.GenericProcessor;
+import com.starterkit.demo.processor.UserProcessor;
 import com.starterkit.demo.repository.UserRepository;
+import com.starterkit.demo.util.CookieUtils;
 import com.starterkit.demo.util.JwtUtil;
 import com.starterkit.demo.util.UserMapper;
 
-import jakarta.persistence.LockModeType;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -44,13 +45,23 @@ public class UserService {
     private final RoleService roleService;
     private final UserMapper userMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final LockStrategy lockStrategy;
+    private final CookieUtils cookieUtils;
+    private final JwtUtil jwtUtil;
 
     @Transactional(readOnly = true)
-    public Page<User> getAllUsers(int page, int size, String nameFilter, String emailFilter, String sortField, String sortOrder) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortOrder), sortField));
+    public Page<User> getAllUsers(
+            int page,
+            int size,
+            String nameFilter,
+            String emailFilter,
+            String sortField,
+            String sortOrder) {
+        Pageable pageable =
+                PageRequest.of(
+                        page, size, Sort.by(Sort.Direction.fromString(sortOrder), sortField));
         if (nameFilter != null && emailFilter != null) {
-            return userRepository.findByNameContainingAndEmailContaining(nameFilter, emailFilter, pageable);
+            return userRepository.findByNameContainingAndEmailContaining(
+                    nameFilter, emailFilter, pageable);
         } else if (nameFilter != null) {
             return userRepository.findByNameContaining(nameFilter, pageable);
         } else if (emailFilter != null) {
@@ -75,16 +86,21 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public User getUserById(UUID id) {
-        return userRepository.findById(id)
+        return userRepository
+                .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id.toString()));
     }
 
     @Transactional(readOnly = true)
     public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+        return userRepository
+                .findByUsername(username)
+                .orElseThrow(
+                        () ->
+                                new ResourceNotFoundException(
+                                        "User not found with username: " + username));
     }
-    
+
     public UserResponseDTO createUser(NewUserRequestDTO userRequestDTO) {
         validateUserRequest(userRequestDTO);
 
@@ -94,40 +110,48 @@ public class UserService {
         Role defaultRole = roleService.findRoleByName(EnumRole.ROLE_USER);
         user.getRoles().add(defaultRole);
 
-        User savedUser = userRepository.save(user);
+        User validatedUser =
+                GenericProcessor.of(user)
+                        .validate(UserProcessor.validateRoles())
+                        .validate(UserProcessor.validateUsername(userRepository::findByUsername))
+                        .validate(UserProcessor.validateEmail(userRepository::findByEmail))
+                        .process();
+
+        User savedUser = userRepository.save(validatedUser);
         publishTxLogEvent(TransactionType.CREATE, savedUser.getId());
         return userMapper.toResponseDTO(savedUser);
     }
 
     public UserResponseDTO updateUser(UUID id, User userDetails) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(id.toString()));
+        User user =
+                userRepository
+                        .findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException(id.toString()));
+
         userMapper.updateUserFromDetails(userDetails, user);
-        User updatedUser = userRepository.save(user);
+
+        User validatedUser =
+                GenericProcessor.of(user).validate(UserProcessor.validateRoles()).process();
+
+        User updatedUser = userRepository.save(validatedUser);
         publishTxLogEvent(TransactionType.UPDATE, updatedUser.getId());
         return userMapper.toResponseDTO(updatedUser);
     }
 
     public void deleteUser(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(id.toString()));
+        User user =
+                userRepository
+                        .findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException(id.toString()));
         userRepository.delete(user);
         publishTxLogEvent(TransactionType.DELETE, id);
     }
 
-    @Transactional
-    public User findByIdWithLock(UUID id, LockModeType lockModeType) {
-        return lockStrategy.lockUser(id, lockModeType);
-    }
-
-    @Transactional
-    public User updateWithLock(User user, LockModeType lockModeType) {
-        return lockStrategy.updateUserWithLock(user, lockModeType);
-    }
-
     public String login(String username, String password, HttpServletResponse response) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(username));
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() -> new ResourceNotFoundException(username));
 
         if (passwordEncoder.matches(password, user.getPassword())) {
             String token = createJwtToken(user);
@@ -139,7 +163,7 @@ public class UserService {
     }
 
     public void logout(HttpServletResponse response) {
-        removeJwtCookie(response);
+        cookieUtils.clearCookie(response, SecurityConfig.AUTH_TOKEN);
     }
 
     private void validateUserRequest(NewUserRequestDTO userRequestDTO) {
@@ -152,34 +176,29 @@ public class UserService {
     }
 
     private String createJwtToken(User user) {
-        Map<String, Object> claims = Map.of("roles", user.getRoles().stream()
-                .map(role -> role.getName().name())
-                .collect(Collectors.toList()));
-        return JwtUtil.getInstance().generateToken(claims, user.getUsername());
+        Map<String, Object> claims =
+                Map.of(
+                        "roles",
+                        user.getRoles().stream()
+                                .map(role -> role.getName().name())
+                                .collect(Collectors.toList()));
+        return jwtUtil.generateToken(claims, user.getUsername());
     }
 
     private void addJwtCookie(HttpServletResponse response, String token) {
-        Cookie cookie = new Cookie(SecurityConfig.AUTH_TOKEN, token);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(JwtUtil.getInstance().getExpiration().intValue());
-        response.addCookie(cookie);
-    }
-
-    private void removeJwtCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie(SecurityConfig.AUTH_TOKEN, null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        cookieUtils.createCookie(
+                SecurityConfig.AUTH_TOKEN,
+                token,
+                jwtUtil.getExpiration().intValue(),
+                response);
     }
 
     private void publishTxLogEvent(TransactionType type, UUID entityId) {
         if (entityId == null) {
-            throw new IllegalArgumentException("Entity ID cannot be null when publishing transaction event");
+            throw new IllegalArgumentException(
+                    "Entity ID cannot be null when publishing transaction event");
         }
-        applicationEventPublisher.publishEvent(new TransactionEvent(type, "User", entityId.toString()));
+        applicationEventPublisher.publishEvent(
+                new TransactionEvent(type, "User", entityId.toString()));
     }
 }

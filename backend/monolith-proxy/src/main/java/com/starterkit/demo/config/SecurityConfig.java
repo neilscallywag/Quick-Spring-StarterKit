@@ -1,9 +1,6 @@
+/* (C)2024 */
 package com.starterkit.demo.config;
 
-import com.starterkit.demo.config.filter.JwtAuthenticationFilter;
-import com.starterkit.demo.config.filter.LogIdFilter;
-import com.starterkit.demo.service.CustomUserDetailsService;
-import com.starterkit.demo.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +18,11 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+
+import com.starterkit.demo.config.filter.JwtAuthenticationFilter;
+import com.starterkit.demo.config.filter.LogIdFilter;
+import com.starterkit.demo.service.CustomUserDetailsService;
+import com.starterkit.demo.util.JwtUtil;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -46,15 +48,19 @@ public class SecurityConfig {
     private static final String API_USERS_ID = "/api/users/{id}";
     private static final String API_USERS = "/api/users";
 
-    public static final String  AUTH_TOKEN = "JWT_TOKEN";
-
+    public static final String AUTH_TOKEN = "JWT_TOKEN";
 
     private final CustomUserDetailsService customUserDetailsService;
     private final LogIdFilter logIdFilter;
+    private final JwtUtil jwtUtil;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService, LogIdFilter logIdFilter) {
+
+    public SecurityConfig(
+            CustomUserDetailsService customUserDetailsService, LogIdFilter logIdFilter,
+            JwtUtil jwtUtil) {
         this.customUserDetailsService = customUserDetailsService;
         this.logIdFilter = logIdFilter;
+        this.jwtUtil = jwtUtil;
     }
 
     @Bean
@@ -63,14 +69,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(customUserDetailsService);
+        return new JwtAuthenticationFilter(customUserDetailsService, jwtUtil);
     }
 
     @Bean
@@ -78,42 +84,65 @@ public class SecurityConfig {
         http.cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(
-                        sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response,
-                        exception) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, exception.getMessage())))
-                .authorizeHttpRequests(authorizeHttpRequest -> {
-                    authorizeHttpRequest
-                            .requestMatchers(ACTUATOR_HEALTH).permitAll()
-                            .requestMatchers(API_USERS_LOGIN).permitAll()
-                            .requestMatchers(API_USERS_REGISTER).permitAll()
-                            .requestMatchers(API_USERS_LOGOUT).permitAll()
-                            .requestMatchers(PUBLIC).permitAll();
+                        sessionManager ->
+                                sessionManager.sessionCreationPolicy(
+                                        SessionCreationPolicy.STATELESS))
+                .exceptionHandling(
+                        exceptionHandling ->
+                                exceptionHandling.authenticationEntryPoint(
+                                        (request, response, exception) ->
+                                                response.sendError(
+                                                        HttpServletResponse.SC_UNAUTHORIZED,
+                                                        exception.getMessage())))
+                .authorizeHttpRequests(
+                        authorizeHttpRequest -> {
+                            authorizeHttpRequest
+                                    .requestMatchers(ACTUATOR_HEALTH)
+                                    .permitAll()
+                                    .requestMatchers(API_USERS_LOGIN)
+                                    .permitAll()
+                                    .requestMatchers(API_USERS_REGISTER)
+                                    .permitAll()
+                                    .requestMatchers(API_USERS_LOGOUT)
+                                    .permitAll()
+                                    .requestMatchers(PUBLIC)
+                                    .permitAll();
 
-                    // For dev modes
-                    if ("dev".equals(activeProfile) || "staging".equals(activeProfile)) {
-                        authorizeHttpRequest
-                                .requestMatchers(ACTUATOR_PROMETHEUS).permitAll()
-                                .requestMatchers(V3_API_DOCS).permitAll()
-                                .requestMatchers(SWAGGER_UI_HTML).permitAll()
-                                .requestMatchers(SWAGGER_UI).permitAll();
-                    }
+                            // For dev modes
+                            if ("dev".equals(activeProfile) || "staging".equals(activeProfile)) {
+                                authorizeHttpRequest
+                                        .requestMatchers(ACTUATOR_PROMETHEUS)
+                                        .permitAll()
+                                        .requestMatchers(V3_API_DOCS)
+                                        .permitAll()
+                                        .requestMatchers(SWAGGER_UI_HTML)
+                                        .permitAll()
+                                        .requestMatchers(SWAGGER_UI)
+                                        .permitAll();
+                            }
 
-                    // RBAC
+                            // RBAC
 
-                    authorizeHttpRequest
-                            .requestMatchers(HttpMethod.GET, API_USERS_ME)
-                            .hasAnyAuthority(ROLE_USER.name(), ROLE_OFFICER.name(), ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.GET, API_USERS_ID)
-                            .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.GET, API_USERS)
-                            .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.POST, API_USERS).hasAuthority(ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.PUT, API_USERS_ID)
-                            .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
-                            .requestMatchers(HttpMethod.DELETE, API_USERS_ID).hasAuthority(ROLE_MANAGER.name())
-                            .anyRequest().authenticated();
-                })
-                .addFilterBefore(logIdFilter, AuthorizationFilter.class) 
+                            authorizeHttpRequest
+                                    .requestMatchers(HttpMethod.GET, API_USERS_ME)
+                                    .hasAnyAuthority(
+                                            ROLE_USER.name(),
+                                            ROLE_OFFICER.name(),
+                                            ROLE_MANAGER.name())
+                                    .requestMatchers(HttpMethod.GET, API_USERS_ID)
+                                    .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
+                                    .requestMatchers(HttpMethod.GET, API_USERS)
+                                    .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
+                                    .requestMatchers(HttpMethod.POST, API_USERS)
+                                    .hasAuthority(ROLE_MANAGER.name())
+                                    .requestMatchers(HttpMethod.PUT, API_USERS_ID)
+                                    .hasAnyAuthority(ROLE_OFFICER.name(), ROLE_MANAGER.name())
+                                    .requestMatchers(HttpMethod.DELETE, API_USERS_ID)
+                                    .hasAuthority(ROLE_MANAGER.name())
+                                    .anyRequest()
+                                    .authenticated();
+                        })
+                .addFilterBefore(logIdFilter, AuthorizationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter(), AuthorizationFilter.class);
         return http.build();
     }

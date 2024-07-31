@@ -2,7 +2,6 @@
 package com.starterkit.demo.controller;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -66,14 +65,12 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody NewUserRequestDTO user) {
-        validateUser(user);
         return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable UUID id, @Valid @RequestBody User userDetails) {
-        validateUser(userDetails);
         UserResponseDTO updatedUser = userService.updateUser(id, userDetails);
         if (updatedUser == null) {
             throw new ResourceNotFoundException("User not found with id " + id);
@@ -129,27 +126,5 @@ public class UserController {
             @CookieValue(name = SecurityConfig.AUTH_TOKEN, required = false) String token) {
         userService.logout(response);
         return ResponseEntity.ok("Logged out successfully");
-    }
-
-    private void validateUser(NewUserRequestDTO user) {
-        if (Objects.isNull(user.getUsername())
-                || user.getUsername().isBlank()
-                || Objects.isNull(user.getEmail())
-                || user.getEmail().isBlank()
-                || Objects.isNull(user.getPassword())
-                || user.getPassword().isBlank()) {
-            throw new InvalidRequestException("User details cannot be null or incomplete");
-        }
-    }
-
-    private void validateUser(User user) {
-        if (Objects.isNull(user.getUsername())
-                || user.getUsername().isBlank()
-                || Objects.isNull(user.getEmail())
-                || user.getEmail().isBlank()
-                || Objects.isNull(user.getPassword())
-                || user.getPassword().isBlank()) {
-            throw new InvalidRequestException("User details cannot be null or incomplete");
-        }
     }
 }

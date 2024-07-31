@@ -1,22 +1,25 @@
+/* (C)2024 */
 package com.starterkit.demo.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import lombok.Setter;
+import java.util.Date;
+import java.util.Map;
+import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.starterkit.demo.exception.AuthenticationException;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.Map;
-
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class JwtUtil {
 
     @Value("${jwt.secret}")
@@ -31,21 +34,14 @@ public class JwtUtil {
     @Setter
     private Long clockSkew;
 
-    private static JwtUtil instance;
-
-    private JwtUtil() {
-        // private constructor to enforce singleton pattern
+    @PostConstruct
+    public void init() {
+        log.info("JWT Secret: {}", secret);
+        log.info("JWT Expiration: {}", expiration);
+        log.info("JWT Clock Skew: {}", clockSkew);
     }
-
-    public static synchronized JwtUtil getInstance() {
-        if (instance == null) {
-            instance = new JwtUtil();
-        }
-        return instance;
-    }
-
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        return Keys.hmacShaKeyFor(this.secret.getBytes());
     }
 
     public String generateToken(Map<String, Object> claims, String subject) {
@@ -72,7 +68,7 @@ public class JwtUtil {
             // Any exception we will return invalid token so that the frontend can catch and log
             // the user out
             throw new AuthenticationException("Invalid Token");
-        }  
+        }
     }
 
     public boolean isTokenExpired(String token) {
@@ -97,6 +93,4 @@ public class JwtUtil {
         Claims claims = getClaimsFromToken(token);
         return claims.getSubject();
     }
-
-
 }

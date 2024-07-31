@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
     @BeforeEach
      void setup() {
         MockitoAnnotations.openMocks(this);
-        jwtUtil = JwtUtil.getInstance();
+        jwtUtil = new JwtUtil();
         jwtUtil.setSecret(secret);
         jwtUtil.setExpiration(expiration);
         jwtUtil.setClockSkew(clockSkew);

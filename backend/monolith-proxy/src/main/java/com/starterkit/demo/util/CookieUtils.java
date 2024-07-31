@@ -1,12 +1,16 @@
+/* (C)2024 */
 package com.starterkit.demo.util;
+
+import java.util.Arrays;
+import java.util.Optional;
+
+import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.Arrays;
-import java.util.Optional;
-
+@Component
 public class CookieUtils {
 
     private static final CookieUtils INSTANCE = new CookieUtils();
@@ -28,11 +32,15 @@ public class CookieUtils {
     }
 
     public void clearCookie(HttpServletResponse response, String name) {
-        Cookie cookie = new Cookie(name, null);
+        createCookie(name, null, 0, response);
+    }
+
+    public void createCookie(String name, String value, int maxAge, HttpServletResponse response) {
+        Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
-        cookie.setMaxAge(0);
+        cookie.setMaxAge(maxAge);
         response.addCookie(cookie);
     }
 }

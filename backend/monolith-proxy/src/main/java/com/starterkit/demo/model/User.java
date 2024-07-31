@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.starterkit.demo.model.base.BaseEntity;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,7 +22,7 @@ import lombok.ToString;
             @Index(name = "idx_username", columnList = "username"),
             @Index(name = "idx_email", columnList = "email")
         })
-public class User extends BaseEntity<UUID> {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
