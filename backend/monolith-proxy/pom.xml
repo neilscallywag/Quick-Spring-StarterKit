@@ -169,6 +169,18 @@
             <artifactId>spotless-maven-plugin</artifactId>
             <version>2.44.0.BETA1</version>
         </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            </dependency>
+     <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
+<dependency>
+    <groupId>org.flywaydb</groupId>
+    <artifactId>flyway-database-postgresql</artifactId>
+    <version>10.17.0</version>
+    <scope>runtime</scope>
+</dependency>
+
     </dependencies>
 
     <build>

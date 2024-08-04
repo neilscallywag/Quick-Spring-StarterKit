@@ -1,0 +1,60 @@
+# Compiled class files
+target/classes/
+
+# Test class files
+target/test-classes/
+
+# Surefire reports
+target/surefire-reports/
+
+# Checkstyle and Spotless outputs
+target/checkstyle-*.xml
+target/spotless-index
+
+# Maven output
+target/generated-sources/
+target/generated-test-sources/
+target/maven-archiver/
+target/maven-status/
+
+# Build output
+target/*.jar
+target/*.jar.original
+
+# Log files
+target/*.log
+*.log
+
+# IDE directories
+*.idea/
+*.vscode/
+*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Maven wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+
+
+# Docker ignore file
+.dockerignore
+
+# Docker files
+Dockerfile
+
+# README and help files
+HELP.md
+README.md
+
+# Static analysis and test coverage reports
+target/site/
+
+# Miscellaneous
+target/jacoco.exec
+target/jacoco.csv
+target/jacoco.xml

@@ -1,20 +1,20 @@
-/* (C)2024 */
 package com.starterkit.demo.processor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class GenericProcessor<T> {
-    private final T target;
+    private final Supplier<T> targetSupplier;
     private final List<Function<T, T>> transformations = new ArrayList<>();
 
-    private GenericProcessor(T target) {
-        this.target = target;
+    private GenericProcessor(Supplier<T> targetSupplier) {
+        this.targetSupplier = targetSupplier;
     }
 
     public static <T> GenericProcessor<T> of(T target) {
-        return new GenericProcessor<>(target);
+        return new GenericProcessor<>(() -> target);
     }
 
     public GenericProcessor<T> validate(Function<T, T> validation) {
@@ -28,7 +28,7 @@ public class GenericProcessor<T> {
     }
 
     public T process() {
-        T result = target;
+        T result = targetSupplier.get();
         for (Function<T, T> transformation : transformations) {
             result = transformation.apply(result);
         }
