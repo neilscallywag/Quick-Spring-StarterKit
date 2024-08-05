@@ -17,7 +17,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <spotless.version>2.41.0</spotless.version>        <!-- Add this line -->
+        <spotless.version>2.41.0</spotless.version> 
 
     </properties>
 
@@ -76,6 +76,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.kafka/spring-kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>3.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -172,14 +178,14 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            </dependency>
-     <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
-<dependency>
-    <groupId>org.flywaydb</groupId>
-    <artifactId>flyway-database-postgresql</artifactId>
-    <version>10.17.0</version>
-    <scope>runtime</scope>
-</dependency>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>10.17.0</version>
+            <scope>runtime</scope>
+        </dependency>
 
     </dependencies>
 
@@ -274,7 +280,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <phase>validate</phase>
@@ -288,6 +294,7 @@
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
+                    <checkstyleVersion>10.0</checkstyleVersion> 
                 </configuration>
             </plugin>
             <plugin>
@@ -341,7 +348,7 @@
                         </importOrder>
 
                         <removeUnusedImports>
-                            <engine>google-java-format</engine>                            <!-- optional. Defaults to `google-java-format`. Can be switched to `cleanthat-javaparser-unnecessaryimport` (e.g. to process JDK17 source files with a JDK8+ Runtime) -->
+                            <engine>cleanthat-javaparser-unnecessaryimport</engine>                            <!-- optional. Defaults to `google-java-format`. Can be switched to `cleanthat-javaparser-unnecessaryimport` (e.g. to process JDK17 source files with a JDK8+ Runtime) -->
                         </removeUnusedImports>
 
                         <formatAnnotations />
