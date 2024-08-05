@@ -74,7 +74,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/actuator/prometheus")
                 || path.startsWith("/api/users/login")
                 || path.startsWith("/api/users/logout")
-                || path.startsWith("/api/users/register");
+                || path.startsWith("/api/users/register")
+                || path.startsWith("/api/interaction/batch")
+                || path.startsWith("/api/interaction");
     }
 
     private void setAuthenticationContext(String jwt, @NonNull HttpServletRequest request) {

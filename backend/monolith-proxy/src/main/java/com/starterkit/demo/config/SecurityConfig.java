@@ -47,6 +47,8 @@ public class SecurityConfig {
     private static final String API_USERS_ME = "/api/users/me";
     private static final String API_USERS_ID = "/api/users/{id}";
     private static final String API_USERS = "/api/users";
+    private static final String TEMP = "/api/interaction/**";
+
 
     public static final String AUTH_TOKEN = "JWT_TOKEN";
 
@@ -104,6 +106,8 @@ public class SecurityConfig {
                                     .requestMatchers(API_USERS_REGISTER)
                                     .permitAll()
                                     .requestMatchers(API_USERS_LOGOUT)
+                                    .permitAll()
+                                    .requestMatchers(TEMP)
                                     .permitAll()
                                     .requestMatchers(PUBLIC)
                                     .permitAll();
