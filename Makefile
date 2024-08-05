@@ -16,22 +16,22 @@ DOCKER_PLATFORM=linux/arm64
 # ---------------------------------------
 up: 
 	@docker compose -p ${PROJECT_NAME} \
-		-f ${LOCAL_DEPLOY_DIR}/docker-compose.yml \
-		up --build --remove-orphans
+		-f ${LOCAL_DEPLOY_DIR}/compose.yaml \
+		up --build --remove-orphans 
 
 down:
 	@docker compose -p ${PROJECT_NAME} \
-		-f ${LOCAL_DEPLOY_DIR}/docker-compose.yml \
+		-f ${LOCAL_DEPLOY_DIR}/compose.yaml \
 		down
 
 down-clean: down
 	@docker compose -p ${PROJECT_NAME} \
-		-f ${LOCAL_DEPLOY_DIR}/docker-compose.yml \
+		-f ${LOCAL_DEPLOY_DIR}/compose.yaml \
 		down -v
 
 build:
 	@docker compose -p ${PROJECT_NAME} \
-		-f ${LOCAL_DEPLOY_DIR}/docker-compose.yml \
+		-f ${LOCAL_DEPLOY_DIR}/compose.yaml \
 		build --build-arg TARGETPLATFORM=${DOCKER_PLATFORM}
 
 # Run mvn spotless:apply verify and open JaCoCo report

@@ -26,9 +26,6 @@ check_env_var "SPRING_APPLICATION_NAME"
 check_env_var "SPRING_DATASOURCE_URL"
 check_env_var "SPRING_DATASOURCE_USERNAME"
 check_env_var "SPRING_DATASOURCE_PASSWORD"
-check_env_var "DATABASE_HOST"
-check_env_var "DATABASE_NAME"
-check_env_var "DATABASE_PORT"
 check_env_var "JWT_SECRET"
 
 #################################################################
