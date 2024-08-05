@@ -63,3 +63,5 @@ INSERT INTO roles (name) VALUES
     ('ROLE_OFFICER'),
     ('ROLE_MANAGER')
 ON CONFLICT (name) DO NOTHING;
+
+
