@@ -27,6 +27,10 @@ check_env_var "SPRING_DATASOURCE_URL"
 check_env_var "SPRING_DATASOURCE_USERNAME"
 check_env_var "SPRING_DATASOURCE_PASSWORD"
 check_env_var "JWT_SECRET"
+check_env_var "KAFKA_USERNAME"
+check_env_var "KAFKA_PASSWORD"
+
+
 
 #################################################################
 # FILE CHECKS
