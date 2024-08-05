@@ -8,6 +8,6 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 public class RoleDTO {
-    private Integer id;
-    private EnumRole name;
+	private Integer id;
+	private EnumRole name;
 }

@@ -23,28 +23,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class TestSecurityConfig {
 
-    private final CustomUserDetailsService userService;
+	private final CustomUserDetailsService userService;
 
-    public TestSecurityConfig(CustomUserDetailsService userService) {
-        this.userService = userService;
-    }
+	public TestSecurityConfig(CustomUserDetailsService userService) {
+		this.userService = userService;
+	}
 
-    @Bean
-    @Primary
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(mockJwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
-        return http.build();
-    }
+	@Bean
+	@Primary
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		http.cors(Customizer.withDefaults())
+				.csrf(csrf -> csrf.disable())
+				.sessionManagement(sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.addFilterBefore(mockJwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+				.authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
+		return http.build();
+	}
 
-    @Bean
-    @Primary
-    public MockJwtAuthenticationFilter mockJwtAuthenticationFilter() {
-        return new MockJwtAuthenticationFilter(userService);
-    }
-  
+	@Bean
+	@Primary
+	public MockJwtAuthenticationFilter mockJwtAuthenticationFilter() {
+		return new MockJwtAuthenticationFilter(userService);
+	}
+
 
 }

@@ -15,11 +15,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RoleService {
 
-    private final RoleRepository roleRepository;
+	private final RoleRepository roleRepository;
 
-    public Role findRoleByName(EnumRole name) {
-        return roleRepository
-                .findByName(name)
-                .orElseThrow(() -> new RuntimeException("Role not found"));
-    }
+	public Role findRoleByName(EnumRole name) {
+		return roleRepository
+				.findByName(name)
+				.orElseThrow(() -> new RuntimeException("Role not found"));
+	}
 }

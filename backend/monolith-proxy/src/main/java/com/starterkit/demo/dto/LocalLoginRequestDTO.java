@@ -5,8 +5,7 @@ import lombok.Data;
 
 @Data
 public class LocalLoginRequestDTO {
-        private String username;
-        private String password;
-      
-    }
-    
+		private String username;
+		private String password;
+
+	}

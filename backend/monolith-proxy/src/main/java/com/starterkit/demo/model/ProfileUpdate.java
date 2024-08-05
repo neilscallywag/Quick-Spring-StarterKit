@@ -1,3 +1,4 @@
+/* (C)2024 */
 package com.starterkit.demo.model;
 
 import java.time.LocalDateTime;
@@ -30,21 +31,22 @@ import lombok.NoArgsConstructor;
 @Table(name = "profile_updates")
 public class ProfileUpdate {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Column(updatable = false, nullable = false)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
-    @ElementCollection
-    @CollectionTable(name = "profile_update_fields", joinColumns = @JoinColumn(name = "profile_update_id"))
-    @Column(name = "field_updated")
-    private Set<String> fieldsUpdated = new HashSet<>();
+	@ElementCollection
+	@CollectionTable(
+			name = "profile_update_fields",
+			joinColumns = @JoinColumn(name = "profile_update_id"))
+	@Column(name = "field_updated")
+	private Set<String> fieldsUpdated = new HashSet<>();
 
-    @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
+	@Column(name = "timestamp", nullable = false)
+	private LocalDateTime timestamp;
 }
-

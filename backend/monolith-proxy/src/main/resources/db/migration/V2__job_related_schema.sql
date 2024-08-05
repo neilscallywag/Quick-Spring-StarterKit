@@ -1,7 +1,7 @@
 -- Create the companies table if it doesn't exist
 CREATE TABLE IF NOT EXISTS companies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_name VARCHAR(255) NOT NULL,
+    company_name VARCHAR(255) NOT NULL UNIQUE,
     industry VARCHAR(255),
     location VARCHAR(255),
     size VARCHAR(255)
@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     job_type VARCHAR(255),
     industry VARCHAR(255),
     salary_range VARCHAR(255),
-    posted_date TIMESTAMP NOT NULL
+    posted_date TIMESTAMP NOT NULL,
+    FOREIGN KEY (company_name) REFERENCES companies(company_name) ON DELETE CASCADE
 );
 
 -- Create the applications table if it doesn't exist

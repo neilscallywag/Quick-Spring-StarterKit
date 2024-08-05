@@ -16,17 +16,17 @@ import jakarta.servlet.ServletResponse;
 @Component
 public class LogIdFilter implements Filter {
 
-    public static final String LOG_ID = "log-id";
+	public static final String LOG_ID = "log-id";
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        try {
-            String logId = UUID.randomUUID().toString();
-            MDC.put(LOG_ID, logId);
-            chain.doFilter(request, response);
-        } finally {
-            MDC.remove(LOG_ID);
-        }
-    }
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		try {
+			String logId = UUID.randomUUID().toString();
+			MDC.put(LOG_ID, logId);
+			chain.doFilter(request, response);
+		} finally {
+			MDC.remove(LOG_ID);
+		}
+	}
 }

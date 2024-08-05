@@ -17,42 +17,42 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class ProfilingAspect {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProfilingAspect.class);
+	private static final Logger logger = LoggerFactory.getLogger(ProfilingAspect.class);
 
-    private final MeterRegistry meterRegistry;
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+	private final MeterRegistry meterRegistry;
+	private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    public ProfilingAspect(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
+	public ProfilingAspect(MeterRegistry meterRegistry) {
+		this.meterRegistry = meterRegistry;
+	}
 
-    @Pointcut("within(com.starterkit.demo.controller..*) || within(com.starterkit.demo.service..*)")
-    public void applicationMethods() {}
+	@Pointcut("within(com.starterkit.demo.controller..*) || within(com.starterkit.demo.service..*)")
+	public void applicationMethods() {}
 
-    @Around("applicationMethods()")
-    public Object profileMethods(ProceedingJoinPoint pjp) throws Throwable {
-        String methodName = pjp.getSignature().toShortString();
-        long start = System.currentTimeMillis();
+	@Around("applicationMethods()")
+	public Object profileMethods(ProceedingJoinPoint pjp) throws Throwable {
+		String methodName = pjp.getSignature().toShortString();
+		long start = System.currentTimeMillis();
 
-        logger.info("Started profiling: {}", methodName);
+		logger.info("Started profiling: {}", methodName);
 
-        Object output = pjp.proceed();
+		Object output = pjp.proceed();
 
-        long elapsedTime = System.currentTimeMillis() - start;
-        logger.info("Finished profiling: {}. Execution time: {} ms", methodName, elapsedTime);
+		long elapsedTime = System.currentTimeMillis() - start;
+		logger.info("Finished profiling: {}. Execution time: {} ms", methodName, elapsedTime);
 
-        executorService.submit(() -> 
-            Timer.builder("method.execution.time")
-                    .tag("method", methodName)
-                    .register(meterRegistry)
-                    .record(elapsedTime, TimeUnit.MILLISECONDS)
-        );
+		executorService.submit(() ->
+			Timer.builder("method.execution.time")
+					.tag("method", methodName)
+					.register(meterRegistry)
+					.record(elapsedTime, TimeUnit.MILLISECONDS)
+		);
 
-        return output;
-    }
+		return output;
+	}
 
-    @PreDestroy
-    public void shutdownExecutorService() {
-        executorService.shutdown();
-    }
+	@PreDestroy
+	public void shutdownExecutorService() {
+		executorService.shutdown();
+	}
 }

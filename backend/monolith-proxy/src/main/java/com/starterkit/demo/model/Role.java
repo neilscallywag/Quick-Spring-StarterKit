@@ -15,15 +15,15 @@ import lombok.NoArgsConstructor;
 @Table(name = "roles")
 public class Role extends BaseEntity<Integer> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20, nullable = false)
-    private EnumRole name;
+	@Enumerated(EnumType.STRING)
+	@Column(length = 20, nullable = false)
+	private EnumRole name;
 
-    public Role(EnumRole name) {
-        this.name = name;
-    }
+	public Role(EnumRole name) {
+		this.name = name;
+	}
 }

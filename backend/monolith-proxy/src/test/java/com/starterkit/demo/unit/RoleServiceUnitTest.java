@@ -16,37 +16,37 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 
- class RoleServiceUnitTest {
+class RoleServiceUnitTest {
 
-    @Mock
-    private RoleRepository roleRepository;
+	@Mock
+	private RoleRepository roleRepository;
 
-    @InjectMocks
-    private RoleService roleService;
+	@InjectMocks
+	private RoleService roleService;
 
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
+	@BeforeEach
+	public void setup() {
+		MockitoAnnotations.openMocks(this);
+	}
 
-    @Test
-     void findRoleByName_RoleExists_ReturnsRole() {
-        Role role = new Role();
-        role.setName(EnumRole.ROLE_USER);
+	@Test
+	void findRoleByName_RoleExists_ReturnsRole() {
+		Role role = new Role();
+		role.setName(EnumRole.ROLE_USER);
 
-        when(roleRepository.findByName(EnumRole.ROLE_USER)).thenReturn(Optional.of(role));
+		when(roleRepository.findByName(EnumRole.ROLE_USER)).thenReturn(Optional.of(role));
 
-        Role foundRole = roleService.findRoleByName(EnumRole.ROLE_USER);
+		Role foundRole = roleService.findRoleByName(EnumRole.ROLE_USER);
 
-        assertThat(foundRole.getName()).isEqualTo(EnumRole.ROLE_USER);
-    }
+		assertThat(foundRole.getName()).isEqualTo(EnumRole.ROLE_USER);
+	}
 
-    @Test
-     void findRoleByName_RoleDoesNotExist_ThrowsException() {
-        when(roleRepository.findByName(EnumRole.ROLE_USER)).thenReturn(Optional.empty());
+	@Test
+	void findRoleByName_RoleDoesNotExist_ThrowsException() {
+		when(roleRepository.findByName(EnumRole.ROLE_USER)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> roleService.findRoleByName(EnumRole.ROLE_USER))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Role not found");
-    }
+		assertThatThrownBy(() -> roleService.findRoleByName(EnumRole.ROLE_USER))
+				.isInstanceOf(RuntimeException.class)
+				.hasMessage("Role not found");
+	}
 }

@@ -26,26 +26,25 @@ import lombok.NoArgsConstructor;
 @Table(name = "applications")
 public class Application {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Column(updatable = false, nullable = false)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id", nullable = false)
-    private Job job;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "job_id", nullable = false)
+	private Job job;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
-    @Column(name = "resume_id", nullable = false)
-    private String resumeId;
+	@Column(name = "resume_id", nullable = false)
+	private String resumeId;
 
-    @Column(name = "cover_letter_id")
-    private String coverLetterId;
+	@Column(name = "cover_letter_id")
+	private String coverLetterId;
 
-    @Column(name = "application_status", nullable = false)
-    private String applicationStatus;
+	@Column(name = "application_status", nullable = false)
+	private String applicationStatus;
 }
-

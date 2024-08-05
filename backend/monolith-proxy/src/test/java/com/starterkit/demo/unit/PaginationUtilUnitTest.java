@@ -14,69 +14,69 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
- class PaginationUtilUnitTest {
+class PaginationUtilUnitTest {
 
-    @Test
-     void testGeneratePaginationHttpHeadersFirstPage() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<String> page = new PageImpl<>(Collections.emptyList(), pageable, 100);
+	@Test
+	void testGeneratePaginationHttpHeadersFirstPage() {
+		Pageable pageable = PageRequest.of(0, 10);
+		Page<String> page = new PageImpl<>(Collections.emptyList(), pageable, 100);
 
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/test");
+		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/test");
 
-        assertEquals("100", headers.getFirst("X-Total-Count"));
+		assertEquals("100", headers.getFirst("X-Total-Count"));
 
-        String linkHeader = headers.getFirst(HttpHeaders.LINK);
-        assertTrue(linkHeader.contains("</api/test?page=1&size=10>; rel=\"next\""));
-        assertTrue(linkHeader.contains("</api/test?page=9&size=10>; rel=\"last\""));
-        assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"first\""));
-        assertTrue(!linkHeader.contains("rel=\"prev\""));
-    }
+		String linkHeader = headers.getFirst(HttpHeaders.LINK);
+		assertTrue(linkHeader.contains("</api/test?page=1&size=10>; rel=\"next\""));
+		assertTrue(linkHeader.contains("</api/test?page=9&size=10>; rel=\"last\""));
+		assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"first\""));
+		assertTrue(!linkHeader.contains("rel=\"prev\""));
+	}
 
-    @Test
-     void testGeneratePaginationHttpHeadersMiddlePage() {
-        Pageable pageable = PageRequest.of(5, 10);
-        Page<String> page = new PageImpl<>(Collections.emptyList(), pageable, 100);
+	@Test
+	void testGeneratePaginationHttpHeadersMiddlePage() {
+		Pageable pageable = PageRequest.of(5, 10);
+		Page<String> page = new PageImpl<>(Collections.emptyList(), pageable, 100);
 
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/test");
+		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/test");
 
-        assertEquals("100", headers.getFirst("X-Total-Count"));
+		assertEquals("100", headers.getFirst("X-Total-Count"));
 
-        String linkHeader = headers.getFirst(HttpHeaders.LINK);
-        assertTrue(linkHeader.contains("</api/test?page=6&size=10>; rel=\"next\""));
-        assertTrue(linkHeader.contains("</api/test?page=4&size=10>; rel=\"prev\""));
-        assertTrue(linkHeader.contains("</api/test?page=9&size=10>; rel=\"last\""));
-        assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"first\""));
-    }
+		String linkHeader = headers.getFirst(HttpHeaders.LINK);
+		assertTrue(linkHeader.contains("</api/test?page=6&size=10>; rel=\"next\""));
+		assertTrue(linkHeader.contains("</api/test?page=4&size=10>; rel=\"prev\""));
+		assertTrue(linkHeader.contains("</api/test?page=9&size=10>; rel=\"last\""));
+		assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"first\""));
+	}
 
-    @Test
-     void testGeneratePaginationHttpHeadersLastPage() {
-        Pageable pageable = PageRequest.of(9, 10);
-        Page<String> page = new PageImpl<>(Collections.emptyList(), pageable, 100);
+	@Test
+	void testGeneratePaginationHttpHeadersLastPage() {
+		Pageable pageable = PageRequest.of(9, 10);
+		Page<String> page = new PageImpl<>(Collections.emptyList(), pageable, 100);
 
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/test");
+		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/test");
 
-        assertEquals("100", headers.getFirst("X-Total-Count"));
+		assertEquals("100", headers.getFirst("X-Total-Count"));
 
-        String linkHeader = headers.getFirst(HttpHeaders.LINK);
-        assertTrue(!linkHeader.contains("rel=\"next\""));
-        assertTrue(linkHeader.contains("</api/test?page=8&size=10>; rel=\"prev\""));
-        assertTrue(linkHeader.contains("</api/test?page=9&size=10>; rel=\"last\""));
-        assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"first\""));
-    }
+		String linkHeader = headers.getFirst(HttpHeaders.LINK);
+		assertTrue(!linkHeader.contains("rel=\"next\""));
+		assertTrue(linkHeader.contains("</api/test?page=8&size=10>; rel=\"prev\""));
+		assertTrue(linkHeader.contains("</api/test?page=9&size=10>; rel=\"last\""));
+		assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"first\""));
+	}
 
-    @Test
-     void testGeneratePaginationHttpHeadersSinglePage() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<String> page = new PageImpl<>(Collections.emptyList(), pageable, 10);
+	@Test
+	void testGeneratePaginationHttpHeadersSinglePage() {
+		Pageable pageable = PageRequest.of(0, 10);
+		Page<String> page = new PageImpl<>(Collections.emptyList(), pageable, 10);
 
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/test");
+		HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/test");
 
-        assertEquals("10", headers.getFirst("X-Total-Count"));
+		assertEquals("10", headers.getFirst("X-Total-Count"));
 
-        String linkHeader = headers.getFirst(HttpHeaders.LINK);
-        assertTrue(!linkHeader.contains("rel=\"next\""));
-        assertTrue(!linkHeader.contains("rel=\"prev\""));
-        assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"last\""));
-        assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"first\""));
-    }
+		String linkHeader = headers.getFirst(HttpHeaders.LINK);
+		assertTrue(!linkHeader.contains("rel=\"next\""));
+		assertTrue(!linkHeader.contains("rel=\"prev\""));
+		assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"last\""));
+		assertTrue(linkHeader.contains("</api/test?page=0&size=10>; rel=\"first\""));
+	}
 }

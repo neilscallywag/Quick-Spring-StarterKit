@@ -19,51 +19,51 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class LogUtilUnitTest {
 
-    @Mock
-    private RestTemplate restTemplate;
+	@Mock
+	private RestTemplate restTemplate;
 
-    @InjectMocks
-    private LogUtil logUtil;
+	@InjectMocks
+	private LogUtil logUtil;
 
-    @BeforeEach
-    void setUp() {
-        logUtil = new LogUtil(restTemplate);
-    }
+	@BeforeEach
+	void setUp() {
+		logUtil = new LogUtil(restTemplate);
+	}
 
-    @Test
-    void testSendLog() {
-        String logMessage = "Test log message";
-        ArgumentCaptor<LogUtil.LogEntry> logEntryCaptor = ArgumentCaptor.forClass(LogUtil.LogEntry.class);
+	@Test
+	void testSendLog() {
+		String logMessage = "Test log message";
+		ArgumentCaptor<LogUtil.LogEntry> logEntryCaptor = ArgumentCaptor.forClass(LogUtil.LogEntry.class);
 
-        logUtil.sendLog(logMessage);
+		logUtil.sendLog(logMessage);
 
-        verify(restTemplate, times(1)).postForObject(eq("http://logging:5001/logs"), logEntryCaptor.capture(), eq(Void.class));
-        LogUtil.LogEntry capturedLogEntry = logEntryCaptor.getValue();
-        assertEquals(logMessage, capturedLogEntry.getMessage());
-    }
+		verify(restTemplate, times(1)).postForObject(eq("http://logging:5001/logs"), logEntryCaptor.capture(), eq(Void.class));
+		LogUtil.LogEntry capturedLogEntry = logEntryCaptor.getValue();
+		assertEquals(logMessage, capturedLogEntry.getMessage());
+	}
 
-    @Test
-    void testGetLogId() {
-        String logId = "12345";
-        MDC.put("log-id", logId);
+	@Test
+	void testGetLogId() {
+		String logId = "12345";
+		MDC.put("log-id", logId);
 
-        String result = logUtil.getLogId();
+		String result = logUtil.getLogId();
 
-        assertEquals(logId, result);
+		assertEquals(logId, result);
 
-        MDC.clear();  // Clean up MDC after the test
-    }
+		MDC.clear();  // Clean up MDC after the test
+	}
 
-    @Test
-    void testLogEntry() {
-        String logMessage = "Test log entry";
-        LogUtil.LogEntry logEntry = new LogUtil.LogEntry(logMessage);
+	@Test
+	void testLogEntry() {
+		String logMessage = "Test log entry";
+		LogUtil.LogEntry logEntry = new LogUtil.LogEntry(logMessage);
 
-        assertEquals(logMessage, logEntry.getMessage());
+		assertEquals(logMessage, logEntry.getMessage());
 
-        String newMessage = "Updated log entry";
-        logEntry.setMessage(newMessage);
+		String newMessage = "Updated log entry";
+		logEntry.setMessage(newMessage);
 
-        assertEquals(newMessage, logEntry.getMessage());
-    }
+		assertEquals(newMessage, logEntry.getMessage());
+	}
 }

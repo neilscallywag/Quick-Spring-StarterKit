@@ -22,20 +22,20 @@ import lombok.NoArgsConstructor;
 @Table(name = "companies")
 public class Company {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Column(updatable = false, nullable = false)
+	private UUID id;
 
-    @Column(name = "company_name", nullable = false)
-    private String companyName;
+	@Column(name = "company_name", nullable = false)
+	private String companyName;
 
-    @Column(name = "industry")
-    private String industry;
+	@Column(name = "industry")
+	private String industry;
 
-    @Column(name = "location")
-    private String location;
+	@Column(name = "location")
+	private String location;
 
-    @Column(name = "size")
-    private String size;
+	@Column(name = "size")
+	private String size;
 }

@@ -1,3 +1,4 @@
+/* (C)2024 */
 package com.starterkit.demo.model;
 
 import java.time.LocalDateTime;
@@ -26,25 +27,25 @@ import lombok.NoArgsConstructor;
 @Table(name = "offers")
 public class Offer {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Column(updatable = false, nullable = false)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id", nullable = false)
-    private Job job;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "job_id", nullable = false)
+	private Job job;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
-    @Column(name = "salary_offered", nullable = false)
-    private double salaryOffered;
+	@Column(name = "salary_offered", nullable = false)
+	private double salaryOffered;
 
-    @Column(name = "start_date", nullable = false)
-    private LocalDateTime startDate;
+	@Column(name = "start_date", nullable = false)
+	private LocalDateTime startDate;
 
-    @Column(name = "offer_status", nullable = false)
-    private String offerStatus;
+	@Column(name = "offer_status", nullable = false)
+	private String offerStatus;
 }

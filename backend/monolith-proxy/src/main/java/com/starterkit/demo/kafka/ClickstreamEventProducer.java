@@ -10,17 +10,17 @@ import com.starterkit.demo.model.ClickstreamEvent;
 @Service
 public class ClickstreamEventProducer {
 
-    private final KafkaTemplate<String, ClickstreamEvent> kafkaTemplate;
-    private final String topic;
+	private final KafkaTemplate<String, ClickstreamEvent> kafkaTemplate;
+	private final String topic;
 
-    public ClickstreamEventProducer(
-            KafkaTemplate<String, ClickstreamEvent> kafkaTemplate,
-            @Value("${kafka.topic.clickstream}") String topic) {
-        this.kafkaTemplate = kafkaTemplate;
-        this.topic = topic;
-    }
+	public ClickstreamEventProducer(
+			KafkaTemplate<String, ClickstreamEvent> kafkaTemplate,
+			@Value("${kafka.topic.clickstream}") String topic) {
+		this.kafkaTemplate = kafkaTemplate;
+		this.topic = topic;
+	}
 
-    public void sendEvent(ClickstreamEvent event) {
-        kafkaTemplate.send(new ProducerRecord<>(topic, event.userId().toString(), event));
-    }
+	public void sendEvent(ClickstreamEvent event) {
+		kafkaTemplate.send(new ProducerRecord<>(topic, event.userId().toString(), event));
+	}
 }

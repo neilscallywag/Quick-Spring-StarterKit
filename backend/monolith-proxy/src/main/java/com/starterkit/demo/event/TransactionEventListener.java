@@ -12,28 +12,27 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class TransactionEventListener {
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onCommitEvent(final TransactionEvent event) {
-        log.info("[{}] {} {}", event.operation().getName(), event.entityName(), event.entityId());
-    }
+	@Async
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	public void onCommitEvent(final TransactionEvent event) {
+		log.info("[{}] {} {}", event.operation().getName(), event.entityName(), event.entityId());
+	}
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void onRollbackEvent(final TransactionEvent event) {
-        log.info("[{}] {} {} rollback.", event.operation().getName(), event.entityName(), event.entityId());
-    }
+	@Async
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+	public void onRollbackEvent(final TransactionEvent event) {
+		log.info("[{}] {} {} rollback.", event.operation().getName(), event.entityName(), event.entityId());
+	}
 
-    public static record TransactionEvent(TransactionType operation, String entityName, String entityId) {}
+	public static record TransactionEvent(TransactionType operation, String entityName, String entityId) {}
 
-    @Getter
-    @AllArgsConstructor
-    public enum TransactionType {
-        CREATE("created"),
-        UPDATE("updated"),
-        DELETE("deleted");
+	@Getter
+	@AllArgsConstructor
+	public enum TransactionType {
+		CREATE("created"),
+		UPDATE("updated"),
+		DELETE("deleted");
 
-        private final String name;
-    }
+		private final String name;
+	}
 }
-

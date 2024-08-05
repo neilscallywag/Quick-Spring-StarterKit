@@ -8,9 +8,9 @@ import lombok.Data;
 
 @Data
 public class MeResponseDTO {
-    private String username;
-    private List<String> roles;
-    private Date issuedAt;
-    private Date expiresAt;
+	private String username;
+	private List<String> roles;
+	private Date issuedAt;
+	private Date expiresAt;
 
 }

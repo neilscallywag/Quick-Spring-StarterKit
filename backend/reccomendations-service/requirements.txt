@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+confluent-kafka
+scikit-learn
+numpy
+opensearch-py
+sqlalchemy
+asyncpg
+psycopg2-binary
+pydantic

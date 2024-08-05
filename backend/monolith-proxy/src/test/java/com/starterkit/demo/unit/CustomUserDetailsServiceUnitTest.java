@@ -21,43 +21,43 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import java.util.Optional;
 import java.util.Set;
 
- class CustomUserDetailsServiceUnitTest {
+class CustomUserDetailsServiceUnitTest {
 
-    @Mock
-    private UserRepository userRepository;
+	@Mock
+	private UserRepository userRepository;
 
-    @InjectMocks
-    private CustomUserDetailsService customUserDetailsService;
+	@InjectMocks
+	private CustomUserDetailsService customUserDetailsService;
 
-    @BeforeEach
-     void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
+	@BeforeEach
+	void setup() {
+		MockitoAnnotations.openMocks(this);
+	}
 
-    @Test
-     void loadUserByUsername_UserExists_ReturnsUserDetails() {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("password");
-        Role role = new Role();
-        role.setName(EnumRole.ROLE_USER);
-        user.setRoles(Set.of(role));
+	@Test
+	void loadUserByUsername_UserExists_ReturnsUserDetails() {
+		User user = new User();
+		user.setUsername("testuser");
+		user.setPassword("password");
+		Role role = new Role();
+		role.setName(EnumRole.ROLE_USER);
+		user.setRoles(Set.of(role));
 
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+		when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
 
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername("testuser");
+		UserDetails userDetails = customUserDetailsService.loadUserByUsername("testuser");
 
-        assertThat(userDetails.getUsername()).isEqualTo("testuser");
-        assertThat(userDetails.getPassword()).isEqualTo("password");
-        assertThat(userDetails.getAuthorities()).hasSize(1);
-    }
+		assertThat(userDetails.getUsername()).isEqualTo("testuser");
+		assertThat(userDetails.getPassword()).isEqualTo("password");
+		assertThat(userDetails.getAuthorities()).hasSize(1);
+	}
 
-    @Test
-     void loadUserByUsername_UserDoesNotExist_ThrowsException() {
-        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+	@Test
+	void loadUserByUsername_UserDoesNotExist_ThrowsException() {
+		when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> customUserDetailsService.loadUserByUsername("nonexistent"))
-                .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessage("User not found with username: nonexistent");
-    }
+		assertThatThrownBy(() -> customUserDetailsService.loadUserByUsername("nonexistent"))
+				.isInstanceOf(UsernameNotFoundException.class)
+				.hasMessage("User not found with username: nonexistent");
+	}
 }

@@ -17,8 +17,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <spotless.version>2.41.0</spotless.version> 
-
+        <spotless.version>2.41.0</spotless.version>
     </properties>
 
     <dependencies>
@@ -77,7 +76,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.kafka/spring-kafka -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
@@ -86,17 +84,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-rest</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-bom</artifactId>
-            <version>1.36.0</version>
-            <type>pom</type>
-            <scope>import</scope>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -140,7 +127,6 @@
             <version>1.19.8</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
@@ -165,7 +151,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-        <!-- Logback Classic for SLF4J -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -176,17 +161,21 @@
             <version>2.44.0.BETA1</version>
         </dependency>
         <dependency>
+    <groupId>com.github.javafaker</groupId>
+    <artifactId>javafaker</artifactId>
+    <version>1.0.2</version>
+</dependency>
+
+        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
             <version>10.17.0</version>
             <scope>runtime</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -232,7 +221,6 @@
                                 <exclude>com/starterkit/demo/controller/**</exclude>
                                 <exclude>com/starterkit/demo/clients/**</exclude>
                                 <exclude>com/starterkit/demo/event/**</exclude>
-
                             </excludes>
                             <rules>
                                 <rule>
@@ -294,25 +282,39 @@
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
-                    <checkstyleVersion>10.0</checkstyleVersion> 
+                    <checkstyleVersion>10.0</checkstyleVersion>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>${spotless.version}</version>
+                <executions>
+                    <execution>
+                        <id>spotless-apply</id>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                    </execution>
+                    <execution>
+                        <id>spotless-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
                 <configuration>
-                    <!-- optional: limit format enforcement to just the files changed by this feature branch -->
-                    <ratchetFrom>origin/main</ratchetFrom>
+                    <!-- <ratchetFrom>origin/main</ratchetFrom> -->
                     <formats>
-                        <!-- you can define as many formats as you want, each is independent -->
                         <format>
-                            <!-- define the files to apply to -->
                             <includes>
                                 <include>.gitattributes</include>
                                 <include>.gitignore</include>
+                                <include>**/*.java</include>
                             </includes>
-                            <!-- define the steps to apply to those files -->
                             <trimTrailingWhitespace/>
                             <endWithNewline/>
                             <indent>
@@ -321,44 +323,30 @@
                             </indent>
                         </format>
                     </formats>
-                    <!-- define a language-specific format -->
                     <java>
-                        <!-- no need to specify files, inferred automatically, but you can if you want -->
-
-                        <!-- apply a specific flavor of google-java-format and reflow long strings -->
                         <googleJavaFormat>
                             <version>1.17.0</version>
                             <style>AOSP</style>
                             <reflowLongStrings>true</reflowLongStrings>
                             <formatJavadoc>false</formatJavadoc>
                         </googleJavaFormat>
-                        <importOrder />
-                        <!-- standard import order -->
-                        <importOrder>                            <!-- or a custom ordering -->
-                            <wildcardsLast>false</wildcardsLast>                            <!-- Optional, default false. Sort wildcard import after specific imports -->
-                            <order>java|javax,org,com,com.diffplug,,\#com.diffplug,\#</order>                            <!-- or use <file>${project.basedir}/eclipse.importorder</file> -->
-                            <!-- you can use an empty string for all the imports you didn't specify explicitly, '|' to join group without blank line, and '\#` prefix for static imports. -->
-                            <semanticSort>false</semanticSort>                            <!-- Optional, default false. Sort by package, then class, then member (for static imports). Splitting is based on common conventions (packages are lower case, classes start with upper case). Use <treatAsPackage> and <treatAsClass> for exceptions. -->
-                            <treatAsPackage>                                <!-- Packages starting with upper case letters. -->
+                        <importOrder>
+                            <wildcardsLast>false</wildcardsLast>
+                            <order>java|javax,org,com,com.diffplug,,\#com.diffplug,\#</order>
+                            <semanticSort>false</semanticSort>
+                            <treatAsPackage>
                                 <package>com.example.MyPackage</package>
                             </treatAsPackage>
-                            <treatAsClass>                                <!-- Classes starting with lower case letters. -->
+                            <treatAsClass>
                                 <class>com.example.myClass</class>
                             </treatAsClass>
                         </importOrder>
-
                         <removeUnusedImports>
-                            <engine>cleanthat-javaparser-unnecessaryimport</engine>                            <!-- optional. Defaults to `google-java-format`. Can be switched to `cleanthat-javaparser-unnecessaryimport` (e.g. to process JDK17 source files with a JDK8+ Runtime) -->
+                            <engine>cleanthat-javaparser-unnecessaryimport</engine>
                         </removeUnusedImports>
-
-                        <formatAnnotations />
-                        <!-- fixes formatting of type annotations, see below -->
-
-                        <!-- make sure every file has the following copyright header.
-        optionally, Spotless can set copyright years by digging
-        through git history (see "license" section below) -->
+                        <formatAnnotations/>
                         <licenseHeader>
-                            <content>/* (C)$YEAR */</content>                            <!-- or <file>${project.basedir}/license-header</file> -->
+                            <content>/* (C) ${year} Neil Sharma */</content>
                         </licenseHeader>
                     </java>
                 </configuration>

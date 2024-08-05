@@ -12,13 +12,13 @@ import lombok.Getter;
 @Profile("!test")
 public class SlackAlertClient extends BaseSlackClient {
 
-    private final String url;
-    private final String channel;
+	private final String url;
+	private final String channel;
 
-    public SlackAlertClient(
-            @Value("${client.slack.api-alert.webhook}") final String url,
-            @Value("${client.slack.api-alert.name}") final String channel) {
-        this.url = url;
-        this.channel = channel;
-    }
+	public SlackAlertClient(
+			@Value("${client.slack.api-alert.webhook}") final String url,
+			@Value("${client.slack.api-alert.name}") final String channel) {
+		this.url = url;
+		this.channel = channel;
+	}
 }
