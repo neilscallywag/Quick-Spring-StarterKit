@@ -1,4 +1,3 @@
-/* (C)2024 */
 package com.starterkit.demo.kafka;
 
 import org.apache.kafka.clients.producer.ProducerRecord;

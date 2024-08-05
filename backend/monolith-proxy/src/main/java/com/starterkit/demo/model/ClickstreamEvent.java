@@ -1,5 +1,7 @@
-/* (C)2024 */
 package com.starterkit.demo.model;
+
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,9 +10,9 @@ import java.util.UUID;
 /**
  * Represents a clickstream event capturing user interactions with a web application.
  */
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record ClickstreamEvent(
         LocalDateTime eventDatetime,
-        // To refactor to an enum for fixed set of events
         String event,
         UUID userId,
         String clientId,
@@ -25,6 +27,7 @@ public record ClickstreamEvent(
     /**
      * Represents details about a job in a clickstream event.
      */
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static record JobDetails(
             String jobTitle,
             String jobId,
@@ -38,6 +41,7 @@ public record ClickstreamEvent(
     /**
      * Represents information about a user's application to a job.
      */
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static record Application(
             String jobTitle,
             String jobId,
@@ -49,6 +53,7 @@ public record ClickstreamEvent(
     /**
      * Represents details about a job offer made to a user.
      */
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static record OfferDetails(
             String jobTitle,
             String jobId,
@@ -60,11 +65,13 @@ public record ClickstreamEvent(
     /**
      * Represents information about updates made to a user's profile.
      */
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static record ProfileUpdate(List<String> fieldsUpdated, LocalDateTime timestamp) {}
 
     /**
      * Represents details about a company involved in the event.
      */
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static record CompanyDetails(
             String companyName, String industry, String location, String size) {}
 }
