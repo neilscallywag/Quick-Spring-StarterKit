@@ -1,27 +1,27 @@
-# Use a slim Python base image
-FROM python:3.11-slim
-
-# Set environment variables to prevent Python from writing pyc files and buffering stdout/stderr
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-# Install necessary system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set the working directory
+FROM python:3.11.7 AS builder
 WORKDIR /app
 
-# Copy requirements.txt and install dependencies
+RUN pip install pyinstaller
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code
-COPY app /app
+COPY app/ /app/
 
-# Expose the port the app runs on
-EXPOSE 8000
+ENV PYTHONPATH /app/:$PYTHONPATH
 
-# Start the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+RUN pyinstaller --onefile main.py
+
+FROM debian:stable-slim
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
+
+    COPY --from=builder /app/dist/main main
+
+EXPOSE 5001
+
+CMD ["./main"]

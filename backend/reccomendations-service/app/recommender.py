@@ -3,9 +3,9 @@ from collections import defaultdict
 from typing import List
 from sklearn.cluster import KMeans
 import numpy as np
-from .models import UserEvent
-from .utils import store_recommendations_in_opensearch, get_recommendations_from_opensearch
-from .config import settings
+from app.models import UserEvent
+from app.utils import store_recommendations_in_opensearch, get_recommendations_from_opensearch
+from app.config import settings
 
 user_events = defaultdict(list)
 logging.basicConfig(level=logging.INFO)

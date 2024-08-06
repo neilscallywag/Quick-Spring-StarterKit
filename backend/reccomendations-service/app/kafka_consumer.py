@@ -2,9 +2,9 @@ import asyncio
 from confluent_kafka import Consumer
 import json
 import logging
-from .models import UserEvent
-from .recommender import update_user_events
-from .config import settings
+from app.models import UserEvent
+from app.recommender import update_user_events
+from app.config import settings
 
 logging.basicConfig(level=logging.INFO)
 

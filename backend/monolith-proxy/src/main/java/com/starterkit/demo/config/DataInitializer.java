@@ -162,6 +162,12 @@ public class DataInitializer implements CommandLineRunner {
 						job.setPostedDate(new Date().toInstant()
 								.atZone(ZoneId.systemDefault())
 								.toLocalDateTime());
+						job.setJobDescription(faker.lorem().paragraph());
+
+						Set<String> keywords = new HashSet<>();
+						IntStream.range(0, 3).forEach(k -> keywords.add(faker.lorem().word()));
+						job.setKeywords(keywords);
+
 						jobRepository.save(job);
 					});
 				}

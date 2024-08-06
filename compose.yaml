@@ -84,6 +84,33 @@ services:
       app:
         condition: service_healthy
 
+  reccomendations:
+    build: ./backend/reccomendations-service/
+    ports:
+      - "${REC_PORT:-8000}:8000"
+    depends_on:
+      app:
+        condition: service_healthy
+        
+  opensearch:
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION:-2.9.0}
+    container_name: opensearch
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node1
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - OPENSEARCH_SECURITY_ENABLED=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "${OPENSEARCH_PORT:-9200}:9200"
+
   db:
     image: postgres:${POSTGRES_VERSION:-15}
     environment:
@@ -121,3 +148,5 @@ services:
 
 volumes:
   postgres_data:
+  opensearch_data:
+

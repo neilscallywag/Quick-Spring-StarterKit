@@ -1,6 +1,5 @@
 package com.starterkit.demo.model;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,6 +46,14 @@ public class Job {
 
 	@Column(name = "posted_date", nullable = false)
 	private LocalDateTime postedDate;
+
+	@Column(name = "job_description", columnDefinition = "TEXT")
+	private String jobDescription;
+
+	@ElementCollection
+	@CollectionTable(name = "job_keywords", joinColumns = @JoinColumn(name = "job_id"))
+	@Column(name = "keyword")
+	private Set<String> keywords = new HashSet<>();
 
 	@OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
 	@ToString.Exclude

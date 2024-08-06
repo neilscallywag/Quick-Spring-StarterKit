@@ -1,5 +1,5 @@
 from opensearchpy import OpenSearch
-from .config import settings
+from app.config import settings
 
 # Create an OpenSearch client
 client = OpenSearch(

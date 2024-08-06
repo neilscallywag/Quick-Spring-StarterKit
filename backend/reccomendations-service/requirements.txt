@@ -8,3 +8,4 @@ sqlalchemy
 asyncpg
 psycopg2-binary
 pydantic
+pydantic-settings
