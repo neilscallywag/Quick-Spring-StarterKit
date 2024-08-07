@@ -1,14 +1,19 @@
+import datetime
+
 from opensearchpy import OpenSearch
-from app.config import settings
+from config import settings
 
 # Create an OpenSearch client
 client = OpenSearch(
     hosts=[settings.opensearch_host],
     http_compress=True,
+    http_auth=settings.opensearch_auth,
+    use_ssl=False,
     timeout=30,
     max_retries=10,
     retry_on_timeout=True
 )
+
 
 # Initialize OpenSearch index
 def initialize_opensearch():
@@ -34,7 +39,7 @@ def store_recommendations_in_opensearch(user_id: str, recommendations: list):
     client.index(index=settings.opensearch_index, body={
         "user_id": user_id,
         "recommended_jobs": recommendations,
-        "timestamp": "now"
+        "timestamp": datetime.datetime.now()
     })
 
 

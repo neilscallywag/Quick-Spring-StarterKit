@@ -1,22 +1,25 @@
-from fastapi import FastAPI, HTTPException
+import uvicorn
 from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException
 
 import asyncio
-from app.recommender import generate_recommendations
-from app.kafka_consumer import consume_events
-from app.utils import initialize_opensearch
-
-app = FastAPI()
+from recommender import generate_recommendations
+from kafka_consumer import consume_events
+from utils import initialize_opensearch
 
 
 @asynccontextmanager
-async def startup_event():
+async def lifespan(app: FastAPI):
     # Initialize OpenSearch
     initialize_opensearch()
 
     # Start Kafka consumer
     asyncio.create_task(consume_events())
 
+    yield  # Lines before yield are executed on startup and lines after yield are executed after shutdown
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")
@@ -31,3 +34,7 @@ async def recommend(user_id: str):
         return {"user_id": user_id, "recommendations": recommendations}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+if __name__ == '__main__':
+    uvicorn.run(app, host="0.0.0.0", port=8000)
