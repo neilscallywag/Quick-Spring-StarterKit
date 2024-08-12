@@ -1,8 +1,8 @@
 [
     {
-      "event_datetime": "2024-08-05 10:15:30",
+      "event_datetime": "2024-08-05T10:15:30",
       "event": "view_job",
-      "user_id": "UID10001",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20001",
       "page": "/job-78901",
       "page_previous": "/category-software-engineering",
@@ -14,13 +14,13 @@
         "job_type": "Full-time",
         "industry": "Information Technology",
         "salary_range": "120000-150000",
-        "posted_date": "2024-08-01"
+        "posted_date": "2024-08-01T00:00:00"
       }
     },
     {
-      "event_datetime": "2024-08-05 10:25:00",
+      "event_datetime": "2024-08-05T10:25:00",
       "event": "save_job",
-      "user_id": "UID10001",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20001",
       "page": "/job-78901",
       "page_previous": "/job-search-results",
@@ -31,9 +31,9 @@
       }
     },
     {
-      "event_datetime": "2024-08-05 11:00:00",
+      "event_datetime": "2024-08-05T11:00:00",
       "event": "view_job",
-      "user_id": "UID10002",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20002",
       "page": "/job-65432",
       "page_previous": "/category-data-science",
@@ -45,13 +45,13 @@
         "job_type": "Full-time",
         "industry": "Data Science",
         "salary_range": "110000-140000",
-        "posted_date": "2024-07-28"
+        "posted_date": "2024-07-28T00:00:00"
       }
     },
     {
-      "event_datetime": "2024-08-05 11:45:00",
+      "event_datetime": "2024-08-05T11:45:00",
       "event": "apply_for_job",
-      "user_id": "UID10001",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20001",
       "page": "/job-78901",
       "page_previous": "/job-78901",
@@ -65,9 +65,9 @@
       }
     },
     {
-      "event_datetime": "2024-08-05 12:30:00",
+      "event_datetime": "2024-08-05T12:30:00",
       "event": "apply_for_job",
-      "user_id": "UID10002",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20002",
       "page": "/job-65432",
       "page_previous": "/job-65432",
@@ -81,9 +81,9 @@
       }
     },
     {
-      "event_datetime": "2024-08-05 13:15:00",
+      "event_datetime": "2024-08-05T13:15:00",
       "event": "view_job",
-      "user_id": "UID10003",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20003",
       "page": "/job-12345",
       "page_previous": "/home",
@@ -95,13 +95,13 @@
         "job_type": "Contract",
         "industry": "Product Management",
         "salary_range": "90000-120000",
-        "posted_date": "2024-07-30"
+        "posted_date": "2024-07-30T00:00:00"
       }
     },
     {
-      "event_datetime": "2024-08-05 14:00:00",
+      "event_datetime": "2024-08-05T14:00:00",
       "event": "job_offer",
-      "user_id": "UID10001",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20001",
       "page": "/dashboard",
       "page_previous": "/applications",
@@ -110,14 +110,14 @@
         "job_id": "78901",
         "company_name": "TechCorp",
         "salary_offered": 145000,
-        "start_date": "2024-09-01",
+        "start_date": "2024-09-01T00:00:00",
         "offer_status": "Accepted"
       }
     },
     {
-      "event_datetime": "2024-08-05 14:30:00",
+      "event_datetime": "2024-08-05T14:30:00",
       "event": "reject_offer",
-      "user_id": "UID10002",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20002",
       "page": "/dashboard",
       "page_previous": "/applications",
@@ -126,26 +126,26 @@
         "job_id": "65432",
         "company_name": "DataGenix",
         "salary_offered": 125000,
-        "start_date": "2024-09-15",
+        "start_date": "2024-09-15T00:00:00",
         "offer_status": "Rejected"
       }
     },
     {
-      "event_datetime": "2024-08-05 15:00:00",
+      "event_datetime": "2024-08-05T15:00:00",
       "event": "update_profile",
-      "user_id": "UID10003",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20003",
       "page": "/profile",
       "page_previous": "/home",
       "profile_update": {
         "fields_updated": ["skills", "experience", "resume"],
-        "timestamp": "2024-08-05 15:00:00"
+        "timestamp": "2024-08-05T15:00:00"
       }
     },
     {
-      "event_datetime": "2024-08-05 16:00:00",
+      "event_datetime": "2024-08-05T16:00:00",
       "event": "view_job",
-      "user_id": "UID10004",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20004",
       "page": "/job-98765",
       "page_previous": "/category-marketing",
@@ -157,13 +157,13 @@
         "job_type": "Part-time",
         "industry": "Marketing",
         "salary_range": "50000-70000",
-        "posted_date": "2024-08-03"
+        "posted_date": "2024-08-03T00:00:00"
       }
     },
     {
-      "event_datetime": "2024-08-05 16:30:00",
+      "event_datetime": "2024-08-05T16:30:00",
       "event": "save_job",
-      "user_id": "UID10004",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20004",
       "page": "/job-98765",
       "page_previous": "/job-98765",
@@ -174,9 +174,9 @@
       }
     },
     {
-      "event_datetime": "2024-08-05 17:00:00",
+      "event_datetime": "2024-08-05T17:00:00",
       "event": "withdraw_application",
-      "user_id": "UID10003",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20003",
       "page": "/applications",
       "page_previous": "/dashboard",
@@ -185,13 +185,13 @@
         "job_id": "12345",
         "company_name": "InnovaCorp",
         "withdrawal_reason": "Accepted another offer",
-        "timestamp": "2024-08-05 17:00:00"
+        "timestamp": "2024-08-05T17:00:00"
       }
     },
     {
-      "event_datetime": "2024-08-05 17:30:00",
+      "event_datetime": "2024-08-05T17:30:00",
       "event": "view_company_profile",
-      "user_id": "UID10004",
+      "user_id": "6cb82743-e71e-42ed-b21d-e524fe9e0ccc",
       "client_id": "CID20004",
       "page": "/company-profile",
       "page_previous": "/job-98765",
